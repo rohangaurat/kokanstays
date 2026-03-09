@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{{ config('app.locale') }}" itemscope itemtype="http://schema.org/WebPage">
+<html lang="{{ app()->getLocale() }}" itemscope itemtype="http://schema.org/WebPage">
 
 <head>
     <meta charset="utf-8">
@@ -125,7 +125,36 @@
             });
         })(jQuery);
     </script>
+@if(!request()->cookie('site_language'))
+<div class="language-modal" id="languageModal">
+    <div class="language-box">
+        <h3>Select Your Language</h3>
 
+        <div class="language-options">
+
+            <button class="lang-btn" onclick="setLanguage('mr')">
+                <img src="{{ asset('assets/images/flags/india.png') }}" class="lang-flag"> Marathi
+            </button>
+
+            <button class="lang-btn" onclick="setLanguage('hi')">
+                <img src="{{ asset('assets/images/flags/india.png') }}" class="lang-flag"> Hindi
+            </button>
+
+            <button class="lang-btn" onclick="setLanguage('en')">
+                <img src="{{ asset('assets/images/flags/india.png') }}" class="lang-flag"> English
+            </button>
+
+        </div>
+    </div>
+</div>
+
+<script>
+function setLanguage(lang){
+    document.cookie = "site_language=" + lang + "; path=/; max-age=" + (60*60*24*365);
+    window.location.href = "{{ url('change') }}/" + lang;
+}
+</script>
+@endif
 </body>
 
 </html>

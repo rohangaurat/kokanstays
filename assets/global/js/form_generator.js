@@ -83,15 +83,17 @@ class FormGenerator{
         }
 
         if(this.fieldType == 'select' || this.fieldType == 'checkbox' || this.fieldType == 'radio'){
-            var options = $("[name='options[]']").map(function(){return $(this).val();}).get();
-        }
+    var options = form.find("[name='options[]']").map(function(){
+        return $(this).val();
+    }).get();
+}
         var formItem = {
             type:this.fieldType,
             is_required:form.find('[name=is_required]').val(),
             label:form.find('[name=form_label]').val(),
             instruction:form.find('[name=instruction]').val(),
             extensions:extensions,
-            options:options,
+            options:options || [],
             width:form.find('[name=form_width]').val(),
             old_id:form.find('[name=update_id]').val()
         };

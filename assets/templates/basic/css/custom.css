@@ -1,0 +1,94 @@
+/* Language Modal Overlay */
+.language-modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.65);
+display:flex;
+align-items:center;
+justify-content:center;
+z-index:99999;
+padding:20px;
+}
+
+/* Popup Box */
+.language-box{
+background:#ffffff;
+border-radius:12px;
+padding:35px 30px;
+text-align:center;
+width:100%;
+max-width:360px;
+box-shadow:0 12px 40px rgba(0,0,0,0.2);
+}
+
+/* Title */
+.language-box h3{
+font-size:22px;
+font-weight:600;
+margin-bottom:25px;
+color:#333;
+}
+
+/* Buttons Container */
+.language-options{
+display:flex;
+flex-direction:column;
+gap:12px;
+}
+
+/* Buttons */
+.lang-btn{
+display:flex;
+align-items:center;
+justify-content:center;
+gap:10px;
+width:100%;
+padding:12px;
+border:none;
+border-radius:8px;
+font-size:16px;
+font-weight:500;
+background:#f3f3f3;
+cursor:pointer;
+transition:all 0.25s ease;
+}
+
+/* Hover Effect */
+.lang-btn:hover{
+background:#ff7a00;
+color:#ffffff;
+}
+
+/* Flag Icon */
+.lang-flag{
+width:22px;
+height:15px;
+object-fit:cover;
+border-radius:2px;
+}
+
+/* Mobile Responsive */
+@media(max-width:480px){
+
+.language-box{
+padding:28px 20px;
+}
+
+.language-box h3{
+font-size:20px;
+}
+
+.lang-btn{
+font-size:15px;
+padding:11px;
+}
+
+.lang-flag{
+width:20px;
+height:14px;
+}
+
+}

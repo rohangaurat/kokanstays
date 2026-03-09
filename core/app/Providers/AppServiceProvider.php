@@ -39,6 +39,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Load language from cookie
+        if (request()->hasCookie('site_language')) {
+        app()->setLocale(request()->cookie('site_language'));
+            }
         if (!cache()->get('SystemInstalled')) {
             $envFilePath = base_path('.env');
             if (!file_exists($envFilePath)) {
