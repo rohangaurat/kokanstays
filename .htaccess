@@ -1,10 +1,19 @@
-# <IfModule mod_headers.c>
-# Header set X-Robots-Tag "noindex, nofollow"
-# </IfModule>
+# Disable directory listing
+Options -Indexes
+
+# Protect hidden files (.env, .git, etc.)
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Protect important config files
+<FilesMatch "(^\.env|composer\.json|composer\.lock|package\.json|package-lock\.json|artisan)">
+    Require all denied
+</FilesMatch>
 
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
-        Options -MultiViews -Indexes
+        Options -MultiViews
     </IfModule>
 
     RewriteEngine On
@@ -13,18 +22,13 @@
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Redirect Trailing Slashes If Not A Folder...
+    # Redirect Trailing Slashes If Not A Folder
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Send Requests To Front Controller...
+    # Send Requests To Front Controller
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
-
-    <Files .env>
-        Order allow,deny
-        Deny from all
-    </Files>
 </IfModule>
