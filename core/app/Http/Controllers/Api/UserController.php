@@ -22,18 +22,13 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-    public function home()
-    {
-        $ads = Advertisement::whereDate('end_date', '>', now())
-            ->where(function ($query) {
-                $query->whereHas('owner', function ($ownerQuery) {
-                    $ownerQuery->active()->notExpired();
-                })
-                    ->orWhereNotNull('url');
-            })
-            ->inRandomOrder()
-            ->limit(5)
-            ->get();
+public function home()
+{
+    $ads = Advertisement::whereDate('end_date', '>', now())
+        ->where('status', 1)
+        ->inRandomOrder()
+        ->limit(5)
+        ->get();
 
 
         $popularHotels = Owner::active()->notExpired()->whereHas('hotelSetting')
