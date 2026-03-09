@@ -1,0 +1,150 @@
+.room-container .cancel-btn {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    left: -4px;
+    top: -8px;
+    background: #EA0000;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    justify-content: center;
+    color: #fff;
+}
+
+
+.room-container {
+    position: relative;
+    isolation: isolate;
+    display: inline-block;
+    min-width: 100px;
+    text-align: center;
+}
+
+.room-container .cancel-btn i {
+    margin: 0;
+    display: inline-block;
+}
+
+button[disabled] {
+    opacity: 0.8 !important;
+    cursor: not-allowed !important;
+    pointer-events: initial !important;
+}
+
+.btn--danger:disabled {
+    color: #fff;
+    opacity: 0.8 !important;
+}
+
+.custom--label {
+    display: inline-block;
+    width: 24px;
+    height: 18px;
+    border-radius: .2rem;
+}
+
+.f-size--18 {
+    font-size: 18px;
+}
+
+.btn--xs {
+    padding: 0.1rem 0.3rem;
+    font-size: 12px !important;
+    border-radius: 0.3rem;
+}
+
+
+
+/* Table Dropdown Solve Css End */
+
+.navbar-wrapper {
+    gap: 15px;
+}
+
+.breadcrumb-plugins:has(form) .btn {
+    height: 45px;
+    line-height: 2.4;
+}
+
+.fw-500 {
+    font-weight: 500;
+}
+
+.text--underline {
+    text-decoration: underline !important;
+}
+
+.sticky-card {
+    position: sticky;
+    top: 24px;
+}
+
+.removeRoomTypeBtn {
+    position: absolute;
+    right: -13px;
+    top: -15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+}
+
+.roomType .card-header {
+    padding-top: 12px;
+}
+
+.removeItem {
+    height: 23px;
+    width: 30px;
+    line-height: 0.5;
+    margin-right: 5px;
+    padding-right: 22px;
+}
+
+.copied::after {
+    position: absolute;
+    top: 8px;
+    right: 12%;
+    width: 100px;
+    display: block;
+    content: "COPIED";
+    font-size: 1em;
+    padding: 5px 5px;
+    color: #fff;
+    border-radius: 3px;
+    background-color: #4634ff;
+    opacity: 0;
+    will-change: opacity, transform;
+    animation: showcopied 1.5s ease;
+}
+
+@keyframes showcopied {
+    0% {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: translateX(40%);
+    }
+
+    70% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+.bl--5-danger {
+    border-left: 5px solid #ea5455 !important;
+}
+
+.select2-results__option--highlighted span {
+    color: #fff;
+}

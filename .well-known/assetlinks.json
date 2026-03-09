@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.kokanstay.android",
+      "sha256_cert_fingerprints": [
+        "3B:2B:1E:61:9F:64:A1:49:62:A7:BE:E7:65:56:B3:8A:04:40:38:97:8C:AA:BD:B2:9C:0A:0A:2E:A6:1A:38:71",
+        "E1:91:D5:06:81:D8:5C:2C:4B:95:C1:0B:1E:94:E3:05:A8:37:C1:07:2F:38:DA:C1:76:B8:3C:C8:68:94:80:01"
+      ]
+    }
+  }
+]

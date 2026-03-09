@@ -1,0 +1,119 @@
+
+.t-check-in {
+     border-right-color: #e8e8e8
+}
+
+.t-date-title {
+     color: #e91e63;
+}
+
+.t-special-day:before {
+     border-color: #e91e63 #e91e63 transparent transparent
+}
+
+.t-datepicker-day {
+     border-color: #ededed;
+     background: #fff
+}
+
+.t-day,
+.t-disabled,
+.t-end,
+.t-range,
+.t-start {
+     background: #fafafa;
+     border-color: #fff
+}
+
+.t-disabled {
+     background: 0 0
+}
+
+.t-highlighted {
+     color: hsl(var(--base))
+}
+
+.t-highlighted.t-disabled {
+     background: #fafafa;
+     color: rgba(20, 20, 21, 0.5);
+}
+
+.t-end,
+.t-end-limit,
+.t-start {
+     color: #fff;
+     background: hsl(var(--base));
+}
+
+.t-range,
+.t-range-limit {
+     color: hsl(var(--base));
+}
+
+.t-range {
+     background: hsl(var(--base) / .1);
+}
+
+.t-range-limit {
+     background: hsl(var(--base) / .2);
+}
+
+.t-range-limit.t-end,
+.t-range-limit.t-start {
+     color: #fff;
+     background: hsl(var(--base));
+}
+
+.t-check-in .t-end,
+.t-check-out .t-start,
+.t-check-out tr~.t-end {
+     color: #fff;
+     background: hsl(var(--base))
+}
+
+.t-hover-day,
+.t-hover-day-content,
+.t-hover-day:hover {
+     color: #fff;
+     background: hsl(var(--base))
+}
+
+.t-hover-day::after {
+     border-color: hsl(var(--base)) transparent transparent
+}
+
+.t-today,
+.t-today .t-hover-day-content {
+     background: hsl(var(--black));
+     opacity: 1 !important;
+}
+
+.t-today::after {
+     border-top-color: hsl(var(--black));
+}
+
+.t-today:hover,
+.t-today:hover .t-hover-day-content {
+     background: hsl(var(--base))
+}
+
+.t-today:hover::after {
+     border-top-color: hsl(var(--base))
+}
+
+.t-end.t-today,
+.t-start.t-today {
+     color: #fff
+}
+
+.t-end.t-today,
+.t-end.t-today .t-hover-day-content,
+.t-start.t-today,
+.t-start.t-today .t-hover-day-content {
+     background: hsl(var(--base))
+}
+
+.t-end.t-today::after,
+.t-start.t-today::after {
+     border-top-color: hsl(var(--base))
+}

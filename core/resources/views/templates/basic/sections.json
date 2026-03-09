@@ -1,0 +1,310 @@
+{
+    "vendor_form_data": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Vendor Verification",
+        "content": {
+            "form_title": "text",
+            "form_subtitle": "text"
+        }
+    },
+    "social_icon": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Social Icons",
+        "element": {
+            "title": "text",
+            "social_icon": "icon",
+            "url": "text",
+            "modal": true
+        }
+    },
+    "policy_pages": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Policy Pages",
+        "hide_builder": true,
+        "element": {
+            "title": "text",
+            "slug": "title",
+            "details": "textarea-nic",
+            "seo": true,
+            "modal": false
+        }
+    },
+    "contact_us": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Contact Us",
+        "content": {
+            "heading": "text",
+            "address": "text",
+            "address_title": "text",
+            "address_icon": "icon",
+            "phone": "text",
+            "phone_title": "text",
+            "phone_icon": "icon",
+            "email": "text",
+            "email_title": "text",
+            "email_icon": "icon",
+            "longitude": "text",
+            "latitude": "text"
+        }
+    },
+    "banner": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Banner",
+        "content": {
+            "images": {
+                "image": {
+                    "size": "1950x550"
+                }
+            },
+            "heading": "text",
+            "subheading": "text"
+        }
+    },
+    "advertisement": {
+        "builder": false,
+        "name": "Advertisement"
+    },
+    "popular_hotels": {
+        "builder": true,
+        "name": "Popular Hotels",
+        "content": {
+            "heading": "text"
+        }
+    },
+    "popular_cities": {
+        "builder": true,
+        "name": "Popular Cities",
+        "content": {
+            "heading": "text",
+            "subheading": "text"
+        }
+    },
+    "featured_hotels": {
+        "builder": true,
+        "name": "Featured Hotels",
+        "content": {
+            "heading": "text"
+        }
+    },
+    "faq": {
+        "builder": true,
+        "name": "Faq",
+        "content": {
+            "heading": "text",
+            "subheading": "text"
+        },
+        "element": {
+            "question": "text",
+            "answer": "textarea",
+            "modal": true
+        }
+    },
+    "about_us": {
+        "builder": true,
+        "name": "About Us",
+        "content": {
+            "images": {
+                "image": {
+                    "size": "600x455"
+                }
+            },
+            "heading": "text",
+            "short_description": "text",
+            "description": "textarea",
+            "button_text": "text",
+            "button_url": "text"
+        }
+    },
+    "mission_vision_goal": {
+        "builder": true,
+        "name": "Mission Vision Goal",
+        "content": {
+            "images": {
+                "image": {
+                    "size": "955x615"
+                }
+            },
+            "heading": "text"
+        }
+    },
+    "mission": {
+        "builder": true,
+        "name": "Mission",
+        "no_selection": true,
+        "content": {
+            "icon": "icon",
+            "description": "text"
+        },
+        "element": {
+            "point": "text",
+            "modal": true
+        }
+    },
+    "vision": {
+        "builder": true,
+        "name": "Vision",
+        "no_selection": true,
+        "content": {
+            "icon": "icon",
+            "description": "text"
+        },
+        "element": {
+            "point": "text",
+            "modal": true
+        }
+    },
+    "goal": {
+        "builder": true,
+        "name": "Goal",
+        "no_selection": true,
+        "content": {
+            "icon": "icon",
+            "description": "text"
+        },
+        "element": {
+            "point": "text",
+            "modal": true
+        }
+    },
+    "testimonial": {
+        "builder": true,
+        "name": "Testimonial",
+        "content": {
+            "heading": "text",
+            "subheading": "text"
+        },
+        "element": {
+            "images": {
+                "image": {
+                    "size": "60x60"
+                }
+            },
+            "name": "text",
+            "city": "text",
+            "country": "text",
+            "rating": "text",
+            "review": "textarea",
+            "modal": false
+        }
+    },
+    "app_download": {
+        "builder": true,
+        "name": "App Download",
+        "content": {
+            "images": {
+                "image_one": {
+                    "size": "580x580"
+                },
+                "image_two": {
+                    "size": "485x480"
+                }
+            },
+            "heading": "text",
+            "subheading": "text",
+            "title": "text"
+        },
+        "element": {
+            "images": {
+                "image": {
+                    "size": "145x45"
+                }
+            },
+            "url": "text",
+            "modal": true
+        }
+    },
+    "why_choose_us": {
+        "builder": true,
+        "name": "Why Choose Us",
+        "content": {
+            "images": {
+                "image": {
+                    "size": "600x410"
+                }
+            },
+            "heading": "text",
+            "subheading": "text",
+            "description": "textarea",
+            "feature_icon": "icon"
+        },
+        "element": {
+            "feature": "text",
+            "modal": true
+        }
+    },
+    "counter": {
+        "builder": true,
+        "name": "Counter",
+        "element": {
+            "icon": "icon",
+            "title": "text",
+            "value": "text",
+            "quantity": "text",
+            "modal": true
+        }
+    },
+    "footer": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Footer",
+        "content": {
+            "images": {
+                "image": {
+                    "size": "1950x450"
+                }
+            },
+            "description": "textarea"
+        }
+    },
+    "cta": {
+        "builder": true,
+        "name": "Call To Action",
+        "content": {
+            "images": {
+                "image": {
+                    "size": "1285x230"
+                }
+            },
+            "heading": "text",
+            "subheading": "text",
+            "button_text": "text",
+            "button_url": "text"
+        }
+    },
+    "user_login": {
+        "builder": true,
+        "no_selection": true,
+        "name": "User Login",
+        "content": {
+            "heading": "text",
+            "subheading": "text"
+        }
+    },
+    "user_registration": {
+        "builder": true,
+        "no_selection": true,
+        "name": "User Registration",
+        "content": {
+            "heading": "text",
+            "subheading": "text"
+        }
+    },
+    "banned_page": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Banned Page",
+        "content": {
+            "images": {
+                "image": {
+                    "size": "700x400"
+                }
+            },
+            "heading": "text"
+        }
+    }
+}
