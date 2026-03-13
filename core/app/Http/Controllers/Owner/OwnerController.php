@@ -31,8 +31,18 @@ class OwnerController extends Controller
         $widget['active']                   = Booking::currentOwner()->active()->count();
         $widget['pending_checkin']          = Booking::currentOwner()->active()->KeyNotGiven()->whereDate('check_in', '<=', now())->count();
         $widget['delayed_checkout']         = Booking::currentOwner()->delayedCheckout()->count();
-        $widget['upcoming_checkin']         = Booking::currentOwner()->active()->whereDate('check_in', '>', now())->whereDate('check_in', '<=', now()->addDays(hotelSetting('upcoming_checkin_days')))->count();
-        $widget['upcoming_checkout']        = Booking::currentOwner()->active()->whereDate('check_out', '>', now())->whereDate('check_out', '<=', now()->addDays(hotelSetting('upcoming_checkout_days')))->count();
+        $upcomingCheckinDays = (int) hotelSetting('upcoming_checkin_days');
+$upcomingCheckoutDays = (int) hotelSetting('upcoming_checkout_days');
+
+$widget['upcoming_checkin'] = Booking::currentOwner()->active()
+    ->whereDate('check_in', '>', now())
+    ->whereDate('check_in', '<=', now()->addDays($upcomingCheckinDays))
+    ->count();
+
+$widget['upcoming_checkout'] = Booking::currentOwner()->active()
+    ->whereDate('check_out', '>', now())
+    ->whereDate('check_out', '<=', now()->addDays($upcomingCheckoutDays))
+    ->count();
         return view('owner.dashboard', compact('pageTitle', 'widget'));
     }
 
