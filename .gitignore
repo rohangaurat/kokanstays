@@ -1,0 +1,23 @@
+# User uploaded files
+/assets/images/ads/
+/assets/images/amenities/
+/assets/images/facilities/
+/assets/images/hotel/
+/assets/verify/
+
+# Laravel cache
+/core/storage/framework/cache/*
+/core/storage/framework/sessions/*
+/core/storage/framework/views/*
+
+# Logs
+/core/storage/logs/*
+
+# Composer
+/core/vendor/
+
+# Node
+node_modules/
+
+# Environment
+.env
