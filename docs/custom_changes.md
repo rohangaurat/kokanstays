@@ -2,6 +2,172 @@ KOKANSTAYS – CUSTOM LOG
 
 ## 2026-03-13 – PHP 8.3 Carbon addDays() Fix (BookingController)
 
+# Custom Changes – KokanStays
+
+## 1. Vendor Notification System Fix
+
+### Purpose
+
+Ensure both **main vendor (owner)** and **staff accounts (manager, etc.)** receive dashboard notifications for important events like withdrawals and wallet transactions.
+
+### Files Modified
+
+* `core/app/Http/Controllers/Admin/WithdrawalController.php`
+* `core/app/Http/Controllers/Admin/ManageOwnersController.php`
+* `core/app/Http/Helpers/helpers.php`
+* `core/resources/views/owner/partials/topnav.blade.php`
+* `core/app/Models/OwnerNotification.php`
+* `core/app/Providers/AppServiceProvider.php`
+
+---
+
+## 2. Helper Function Added
+
+### File
+
+`core/app/Http/Helpers/helpers.php`
+
+### Function
+
+`ownerNotify()`
+
+### Description
+
+Creates notifications for the **main owner and all staff accounts (parent-child owner relationship)**.
+
+```php
+function ownerNotify($ownerId, $title, $url = null)
+{
+    try {
+
+        // Main owner notification
+        \App\Models\OwnerNotification::create([
+            'owner_id'  => $ownerId,
+            'user_id'   => 0,
+            'title'     => $title,
+            'click_url' => $url,
+            'is_read'   => 0
+        ]);
+
+        // Notify staff accounts
+        $staff = \App\Models\Owner::where('parent_id', $ownerId)->get();
+
+        foreach ($staff as $member) {
+            \App\Models\OwnerNotification::create([
+                'owner_id'  => $member->id,
+                'user_id'   => 0,
+                'title'     => $title,
+                'click_url' => $url,
+                'is_read'   => 0
+            ]);
+        }
+
+    } catch (\Exception $e) {
+        \Log::error('Owner notification error: ' . $e->getMessage());
+    }
+}
+```
+
+---
+
+## 3. Withdrawal Notification Added
+
+### File
+
+`core/app/Http/Controllers/Admin/WithdrawalController.php`
+
+### Added After Approve
+
+```php
+ownerNotify(
+    $withdraw->owner_id,
+    'Your withdrawal request has been approved',
+    route('owner.withdraw.history')
+);
+```
+
+### Added After Reject
+
+```php
+ownerNotify(
+    $withdraw->owner_id,
+    'Your withdrawal request has been rejected',
+    route('owner.withdraw.history')
+);
+```
+
+---
+
+## 4. Wallet Balance Notification
+
+### File
+
+`core/app/Http/Controllers/Admin/ManageOwnersController.php`
+
+Added notification when admin adds or subtracts balance.
+
+```php
+ownerNotify(
+    $owner->id,
+    'Admin added ' . gs('cur_sym') . $amount . ' to your wallet',
+    route('owner.report.transaction')
+);
+```
+
+```php
+ownerNotify(
+    $owner->id,
+    'Admin deducted ' . gs('cur_sym') . $amount . ' from your wallet',
+    route('owner.report.transaction')
+);
+```
+
+---
+
+## 5. Notification Dropdown Improvements
+
+### File
+
+`core/resources/views/owner/partials/topnav.blade.php`
+
+Changes:
+
+* Added safe image loading
+* Added empty notification message
+* Added support for `click_url`
+
+```blade
+href="{{ $notification->click_url ?? route('owner.notification.read', $notification->id) }}"
+```
+
+---
+
+## Result
+
+Notifications now work for:
+
+* Withdrawal approved
+* Withdrawal rejected
+* Wallet balance added
+* Wallet balance deducted
+* Vendor + staff accounts
+
+All notifications appear in the **vendor dashboard bell icon**.
+
+====
+| File                     | Purpose                                |
+| ------------------------ | -------------------------------------- |
+| WithdrawalController.php | Withdrawal approve/reject notification |
+| helpers.php              | `ownerNotify()` helper                 |
+| OwnerNotification.php    | Notification model                     |
+| AppServiceProvider.php   | Load notifications in dashboard        |
+| topnav.blade.php         | Bell icon display                      |
+git add core/app/Http/Controllers/Admin/WithdrawalController.php
+git add core/app/Http/Helpers/helpers.php
+git add core/app/Models/OwnerNotification.php
+git add core/app/Providers/AppServiceProvider.php
+git add core/resources/views/owner/partials/topnav.blade.php
+
 **File Modified**
 core/app/Http/Controllers/Owner/BookingController.php
 

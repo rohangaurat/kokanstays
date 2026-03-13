@@ -357,12 +357,27 @@ class ManageOwnersController extends Controller
         $transaction->details = $request->remark;
         $transaction->save();
 
-        notify($owner, $notifyTemplate, [
-            'trx' => $trx,
-            'amount' => showAmount($amount, currencyFormat: false),
-            'remark' => $request->remark,
-            'post_balance' => showAmount($owner->balance, currencyFormat: false)
-        ]);
+notify($owner, $notifyTemplate, [
+    'trx' => $trx,
+    'amount' => showAmount($amount, currencyFormat: false),
+    'remark' => $request->remark,
+    'post_balance' => showAmount($owner->balance, currencyFormat: false)
+]);
+
+// Dashboard notification
+if ($request->act == 'add') {
+    ownerNotify(
+        $owner->id,
+        'Admin added ' . gs('cur_sym') . $amount . ' to your wallet',
+        route('owner.report.transaction')
+    );
+} else {
+    ownerNotify(
+        $owner->id,
+        'Admin deducted ' . gs('cur_sym') . $amount . ' from your wallet',
+        route('owner.report.transaction')
+    );
+}
 
         return back()->withNotify($notify);
     }

@@ -32,8 +32,10 @@
                             @endif
                         </div>
                         <div class="dropdown-menu__body">
-                            @foreach ($ownerNotifications as $notification)
-                                <a class="dropdown-menu__item" href="{{ route('owner.notification.read', $notification->id) }}">
+                            @if($ownerNotifications->count() > 0)
+
+@foreach ($ownerNotifications as $notification)
+                                <a class="dropdown-menu__item" href="{{ $notification->click_url ?? route('owner.notification.read', $notification->id) }}">
                                     <div class="navbar-notifi">
                                         <div class="navbar-notifi__right">
                                             <h6 class="notifi__title">{{ __($notification->title) }}</h6>
@@ -43,6 +45,12 @@
                                     </div>
                                 </a>
                             @endforeach
+
+@else
+<div class="text-center p-3 text-muted">
+    No notifications found
+</div>
+@endif
                         </div>
                         @can('owner.notifications')
                             <div class="dropdown-menu__footer">
@@ -56,7 +64,8 @@
             <li class="dropdown">
                 <button aria-expanded="false" aria-haspopup="true" class="" data-bs-toggle="dropdown" data-display="static" type="button">
                     <span class="navbar-user">
-                        <span class="navbar-user__thumb"><img alt="image" src="{{ getImage('assets/owner/images/profile/' . auth()->guard('owner')->user()->image) }}"></span>
+                        <span class="navbar-user__thumb"><img alt="image"
+src="{{ getImage('assets/owner/images/profile/' . auth()->guard('owner')->user()->image, null, true) }}"></span>
                         <span class="navbar-user__info">
                             <span class="navbar-user__name">{{ auth()->guard('owner')->user()->username }}</span>
                         </span>

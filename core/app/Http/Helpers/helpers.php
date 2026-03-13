@@ -615,6 +615,8 @@ function diffInDays($from, $to) {
 function ownerNotify($ownerId, $title, $url = null)
 {
     try {
+
+        // main owner
         \App\Models\OwnerNotification::create([
             'owner_id'  => $ownerId,
             'user_id'   => 0,
@@ -622,6 +624,20 @@ function ownerNotify($ownerId, $title, $url = null)
             'click_url' => $url,
             'is_read'   => 0
         ]);
+
+        // staff accounts under this owner
+        $staff = \App\Models\Owner::where('parent_id', $ownerId)->get();
+
+        foreach ($staff as $member) {
+            \App\Models\OwnerNotification::create([
+                'owner_id'  => $member->id,
+                'user_id'   => 0,
+                'title'     => $title,
+                'click_url' => $url,
+                'is_read'   => 0
+            ]);
+        }
+
     } catch (\Exception $e) {
         \Log::error('Owner notification error: ' . $e->getMessage());
     }
