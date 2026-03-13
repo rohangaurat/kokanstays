@@ -123,6 +123,12 @@ class WithdrawalController extends Controller
             'trx' => $withdraw->trx,
             'admin_details' => $request->details
         ]);
+        
+        ownerNotify(
+        $withdraw->owner_id,
+        'Your withdrawal request has been approved',
+        route('owner.withdraw.history')
+    );
 
         $notify[] = ['success', 'Withdrawal approved successfully'];
         return to_route('admin.withdraw.data.pending')->withNotify($notify);
