@@ -11,7 +11,7 @@
     <div class="navbar__right">
         <ul class="navbar__action-list">
 
-            @can(['owner.notification.read', 'owner.notifications'])
+            @if(authOwner())
                 <li class="dropdown">
                     <button type="button" class="primary--layer notification-bell" data-bs-toggle="dropdown" data-display="static" aria-haspopup="true" aria-expanded="false">
                         <span data-bs-toggle="tooltip" data-bs-placement="bottom" title="@lang('Unread Notifications')">
@@ -33,7 +33,7 @@
                         </div>
                         <div class="dropdown-menu__body">
                             @foreach ($ownerNotifications as $notification)
-                                <a class="dropdown-menu__item" href="@if (can('owner.notification.read')) {{ route('owner.notification.read', $notification->id) }} @else javascript:void(0) @endif">
+                                <a class="dropdown-menu__item" href="{{ route('owner.notification.read', $notification->id) }}">
                                     <div class="navbar-notifi">
                                         <div class="navbar-notifi__right">
                                             <h6 class="notifi__title">{{ __($notification->title) }}</h6>
@@ -51,7 +51,7 @@
                         @endcan
                     </div>
                 </li>
-            @endcan
+            @endif
 
             <li class="dropdown">
                 <button aria-expanded="false" aria-haspopup="true" class="" data-bs-toggle="dropdown" data-display="static" type="button">

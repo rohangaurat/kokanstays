@@ -108,7 +108,10 @@ class WithdrawalController extends Controller
     public function approve(Request $request)
     {
         $request->validate(['id' => 'required|integer']);
-        $withdraw = Withdrawal::where('id', $request->id)->where('status', Status::PAYMENT_PENDING)->with('owner')->firstOrFail();
+        $withdraw = Withdrawal::where('id', $request->id)
+    ->where('status', Status::PAYMENT_PENDING)
+    ->with(['owner','method'])
+    ->firstOrFail();
         $withdraw->status = Status::PAYMENT_SUCCESS;
         $withdraw->admin_feedback = $request->details;
         $withdraw->save();
@@ -138,8 +141,10 @@ class WithdrawalController extends Controller
     public function reject(Request $request)
     {
         $request->validate(['id' => 'required|integer']);
-        $withdraw = Withdrawal::where('id', $request->id)->where('status', Status::PAYMENT_PENDING)->with('owner')->firstOrFail();
-
+        $withdraw = Withdrawal::where('id', $request->id)
+    ->where('status', Status::PAYMENT_PENDING)
+    ->with(['owner','method'])
+    ->firstOrFail();
         $withdraw->status = Status::PAYMENT_REJECT;
         $withdraw->admin_feedback = $request->details;
         $withdraw->save();
@@ -160,18 +165,25 @@ class WithdrawalController extends Controller
         $transaction->save();
 
         notify($owner, 'WITHDRAW_REJECT', [
-            'method_name' => $withdraw->method->name,
-            'method_currency' => $withdraw->currency,
-            'method_amount' => showAmount($withdraw->final_amount, currencyFormat: false),
-            'amount' => showAmount($withdraw->amount, currencyFormat: false),
-            'charge' => showAmount($withdraw->charge, currencyFormat: false),
-            'rate' => showAmount($withdraw->rate, currencyFormat: false),
-            'trx' => $withdraw->trx,
-            'post_balance' => showAmount($owner->balance, currencyFormat: false),
-            'admin_details' => $request->details
-        ]);
+    'method_name' => $withdraw->method->name,
+    'method_currency' => $withdraw->currency,
+    'method_amount' => showAmount($withdraw->final_amount, currencyFormat: false),
+    'amount' => showAmount($withdraw->amount, currencyFormat: false),
+    'charge' => showAmount($withdraw->charge, currencyFormat: false),
+    'rate' => showAmount($withdraw->rate, currencyFormat: false),
+    'trx' => $withdraw->trx,
+    'post_balance' => showAmount($owner->balance, currencyFormat: false),
+    'admin_details' => $request->details
+]);
 
-        $notify[] = ['success', 'Withdrawal rejected successfully'];
-        return to_route('admin.withdraw.data.pending')->withNotify($notify);
-    }
+ownerNotify(
+    $withdraw->owner_id,
+    'Your withdrawal request has been rejected',
+    route('owner.withdraw.history')
+);
+
+$notify[] = ['success', 'Withdrawal rejected successfully'];
+return to_route('admin.withdraw.data.pending')->withNotify($notify);
+}
+
 }

@@ -612,3 +612,17 @@ function diffInDays($from, $to) {
     $to   = Carbon::parse($to);
     return $from->diffInDays($to);
 }
+function ownerNotify($ownerId, $title, $url = null)
+{
+    try {
+        \App\Models\OwnerNotification::create([
+            'owner_id'  => $ownerId,
+            'user_id'   => 0,
+            'title'     => $title,
+            'click_url' => $url,
+            'is_read'   => 0
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Owner notification error: ' . $e->getMessage());
+    }
+}

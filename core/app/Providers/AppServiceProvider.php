@@ -100,11 +100,28 @@ class AppServiceProvider extends ServiceProvider
         });
 
         view()->composer('owner.partials.topnav', function ($view) {
-            $view->with([
-                'ownerNotifications' => OwnerNotification::currentOwner()->where('is_read', Status::NO)->with('user')->orderBy('id', 'desc')->take(10)->get(),
-                'ownerNotificationCount' => OwnerNotification::currentOwner()->where('is_read', Status::NO)->count(),
-            ]);
-        });
+
+    if (authOwner()) {
+
+        $ownerId = getOwnerParentId();
+
+        $ownerNotifications = OwnerNotification::where('owner_id', $ownerId)
+            ->where('is_read', Status::NO)
+            ->orderBy('id', 'desc')
+            ->take(10)
+            ->get();
+
+        $ownerNotificationCount = OwnerNotification::where('owner_id', $ownerId)
+            ->where('is_read', Status::NO)
+            ->count();
+
+        $view->with([
+            'ownerNotifications' => $ownerNotifications,
+            'ownerNotificationCount' => $ownerNotificationCount,
+        ]);
+    }
+
+});
 
         if (gs('force_ssl')) {
             \URL::forceScheme('https');
