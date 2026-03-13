@@ -112,22 +112,44 @@ class BookingController extends Controller
     }
 
     public function upcomingCheckIn()
-    {
-        $pageTitle         = 'Upcoming Check-In Bookings';
-        $bookings          = Booking::currentOwner()->active()->whereDate('check_in', '>', now())->whereDate('check_in', '<=', now()->addDays(hotelSetting('upcoming_checkin_days')))->with('user', 'guest')->withCount('activeBookedRooms as total_room')->orderBy('check_in')->get()->groupBy('check_in');
-        $emptyMessage      = 'No upcoming check-in found';
+{
+    $pageTitle = 'Upcoming Check-In Bookings';
 
-        return view('owner.booking.upcoming_checkin_checkout', compact('pageTitle', 'bookings', 'emptyMessage'));
-    }
+    $days = (int) hotelSetting('upcoming_checkin_days');
+
+    $bookings = Booking::currentOwner()->active()
+        ->whereDate('check_in', '>', now())
+        ->whereDate('check_in', '<=', now()->addDays($days))
+        ->with('user', 'guest')
+        ->withCount('activeBookedRooms as total_room')
+        ->orderBy('check_in')
+        ->get()
+        ->groupBy('check_in');
+
+    $emptyMessage = 'No upcoming check-in found';
+
+    return view('owner.booking.upcoming_checkin_checkout', compact('pageTitle', 'bookings', 'emptyMessage'));
+}
 
     public function upcomingCheckout()
-    {
-        $pageTitle       = 'Upcoming Checkout Bookings';
-        $bookings        = Booking::currentOwner()->active()->whereDate('check_out', '>', now())->whereDate('check_out', '<=', now()->addDays(hotelSetting('upcoming_checkout_days')))->with('user', 'guest')->withCount('activeBookedRooms as total_room')->orderBy('check_out')->get()->groupBy('check_out');
-        $emptyMessage    = 'No upcoming checkout found';
+{
+    $pageTitle = 'Upcoming Checkout Bookings';
 
-        return view('owner.booking.upcoming_checkin_checkout', compact('pageTitle', 'bookings', 'emptyMessage'));
-    }
+    $days = (int) hotelSetting('upcoming_checkout_days');
+
+    $bookings = Booking::currentOwner()->active()
+        ->whereDate('check_out', '>', now())
+        ->whereDate('check_out', '<=', now()->addDays($days))
+        ->with('user', 'guest')
+        ->withCount('activeBookedRooms as total_room')
+        ->orderBy('check_out')
+        ->get()
+        ->groupBy('check_out');
+
+    $emptyMessage = 'No upcoming checkout found';
+
+    return view('owner.booking.upcoming_checkin_checkout', compact('pageTitle', 'bookings', 'emptyMessage'));
+}
 
     public function bookingDetails($id)
     {

@@ -1,7 +1,41 @@
 KOKANSTAYS – CUSTOM LOG
 
+## 2026-03-13 – PHP 8.3 Carbon addDays() Fix (BookingController)
+
+**File Modified**
+core/app/Http/Controllers/Owner/BookingController.php
+
+**Problem**
+Laravel with PHP 8.3 throws a TypeError because Carbon date unit methods
+(e.g. `addDays()`) require an integer or float.  
+However `hotelSetting()` returns a string from the database.
+
+Error example:
+Carbon\Carbon::rawAddUnit(): Argument #3 ($value) must be of type int|float, string given
+
+**Affected Methods**
+- upcomingCheckIn()
+- upcomingCheckout()
+
+**Fix**
+Cast the value returned by `hotelSetting()` to integer before passing it to `addDays()`.
+
+**Before**
+
+```php
+now()->addDays(hotelSetting('upcoming_checkin_days'))
+now()->addDays(hotelSetting('upcoming_checkout_days'))
+------======
+
+2026-03-13
+
+core/app/Http/Controllers/Owner/OwnerController.php
+
+Fix Carbon addDays() TypeError in OwnerController dashboard.
+Cast hotelSetting() values to integer for PHP 8.3 compatibility.
 
 ## 2026-03-13 – Fix Carbon addDays() TypeError (PHP 8.3 Compatibility)
+------======
 
 **File Modified**
 app/Http/Middleware/OwnerValidity.php
