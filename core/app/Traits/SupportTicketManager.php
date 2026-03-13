@@ -2,7 +2,9 @@
 
 namespace App\Traits;
 
+
 use App\Constants\Status;
+use App\Models\OwnerNotification;
 use App\Models\AdminNotification;
 use App\Models\SupportAttachment;
 use App\Models\SupportMessage;
@@ -251,6 +253,16 @@ trait SupportTicketManager
                 'reply' => $request->message,
                 'link' => route('ticket.view', $ticket->ticket),
             ], $sendVia, $createLog);
+            // Vendor dashboard notification
+        if ($ticket->owner_id) {
+            OwnerNotification::create([
+        'owner_id'  => $ticket->owner_id,
+        'user_id'   => 0,
+        'title'     => 'Admin replied to your support ticket',
+        'click_url' => route('owner.ticket.view', $ticket->ticket),
+        'is_read'   => 0
+        ]);
+    }
         }
 
         $message->load('attachments');
