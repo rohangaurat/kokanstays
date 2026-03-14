@@ -146,36 +146,57 @@ class PaymentController extends Controller {
         return to_route($redirectTo);
     }
 
-    private function billPayByWalletBalance($request, $amount) {
-        $owner          = authOwner();
-        $payForMonth    = intval($request->pay_for_month);
-        $nextExpireDate = Carbon::parse($owner->expire_at)->addMonth($payForMonth * 1)->subDay();
+    private function billPayByWalletBalance($request, $amount)
+{
+    $owner       = authOwner();
+    $payForMonth = intval($request->pay_for_month);
+    $trx         = getTrx();
 
-        $owner->balance -= $amount;
-        $owner->expire_at = $nextExpireDate;
-        $owner->save();
+    $nextExpireDate = Carbon::parse($owner->expire_at)
+        ->addMonth($payForMonth)
+        ->subDay();
 
-        $transaction               = new Transaction();
-        $transaction->owner_id     = $owner->id;
-        $transaction->amount       = $amount;
-        $transaction->post_balance = $owner->balance;
-        $transaction->charge       = 0;
-        $transaction->trx_type     = '-';
-        $transaction->details      = 'Payment for ' . $payForMonth . ' months';
-        $transaction->trx          = getTrx();
-        $transaction->remark       = 'monthly_bill_payment';
-        $transaction->save();
+    $owner->balance -= $amount;
+    $owner->expire_at = $nextExpireDate;
+    $owner->save();
 
-        notify($owner, 'BILL_PAYMENT_COMPLETED', [
-            'amount_per_month' => showAmount($transaction->amount / $payForMonth, currencyFormat: false),
-            'total_month'      => $payForMonth,
-            'amount'           => showAmount($transaction->amount, currencyFormat: false),
-            'charge'           => showAmount($transaction->charge, currencyFormat: false),
-            'final_amount'     => showAmount($transaction->amount, currencyFormat: false),
-            'expire_at'        => showDateTime($owner->expire_at, 'd M, Y'),
-            'trx'              => $transaction->trx,
-        ]);
-    }
+    // Create Deposit record (for Subscription History)
+    $deposit = new Deposit();
+    $deposit->owner_id = $owner->id;
+    $deposit->user_id = 0;
+    $deposit->pay_for_month = $payForMonth;
+    $deposit->method_code = -1; // Wallet
+    $deposit->method_currency = gs('cur_text');
+    $deposit->amount = $amount;
+    $deposit->charge = 0;
+    $deposit->rate = 1;
+    $deposit->final_amount = $amount;
+    $deposit->trx = $trx;
+    $deposit->status = Status::PAYMENT_SUCCESS;
+    $deposit->save();
+
+    // Transaction record
+    $transaction = new Transaction();
+    $transaction->owner_id = $owner->id;
+    $transaction->amount = $amount;
+    $transaction->post_balance = $owner->balance;
+    $transaction->charge = 0;
+    $transaction->trx_type = '-';
+    $transaction->details = 'Wallet payment for ' . $payForMonth . ' months subscription';
+    $transaction->trx = $trx;
+    $transaction->remark = 'monthly_bill_payment';
+    $transaction->save();
+
+    notify($owner, 'BILL_PAYMENT_COMPLETED', [
+        'amount_per_month' => showAmount($transaction->amount / $payForMonth, currencyFormat: false),
+        'total_month'      => $payForMonth,
+        'amount'           => showAmount($transaction->amount, currencyFormat: false),
+        'charge'           => showAmount($transaction->charge, currencyFormat: false),
+        'final_amount'     => showAmount($transaction->amount, currencyFormat: false),
+        'expire_at'        => showDateTime($owner->expire_at, 'd M, Y'),
+        'trx'              => $transaction->trx,
+    ]);
+}
 
     public function appDepositConfirm($hash) {
         try {
