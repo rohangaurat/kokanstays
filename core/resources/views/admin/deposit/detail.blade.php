@@ -28,18 +28,21 @@
                             </li>
                         @endif
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            @lang('Method')
-                            <span class="fw-bold">
+    @lang('Method')
+    <span class="fw-bold">
 
-                                @if ($deposit->method_code < 5000)
-                                    {{ __(@$deposit->methodName()) }}
-                                @elseif($deposit->method_code >= 5000)
-                                    @lang('Google Pay')
-                                @else
-                                    @lang('Wallet Balance')
-                                @endif
-                            </span>
-                        </li>
+        @if ($deposit->method_code == 0)
+            <span class="text--primary">@lang('Wallet')</span>
+
+        @elseif ($deposit->method_code < 5000)
+            {{ __(@$deposit->methodName()) }}
+
+        @else
+            @lang('Google Pay')
+        @endif
+
+    </span>
+</li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             @lang('Amount')
                             <span class="fw-bold">{{ showAmount($deposit->amount) }}</span>

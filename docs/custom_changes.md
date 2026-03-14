@@ -1,5 +1,217 @@
 KOKANSTAYS – CUSTOM LOG
 
+
+## 2026-03-14 – Support Ticket Notification Improvements
+
+### Wallet Label Fix (Admin Deposit Details)
+
+File:
+core/resources/views/admin/deposit/detail.blade.php
+
+Issue:
+Wallet payments were not displaying a payment method on the deposit details page because wallet transactions use `method_code = 0` and have no gateway record.
+
+Fix:
+Added condition to display "Wallet" when `method_code == 0`.
+
+### Wallet Payment Label Fix (Admin Deposit List)
+
+File:
+core/resources/views/admin/deposit/log.blade.php
+
+Issue:
+Wallet payments were not displaying any payment method label because wallet transactions use `method_code = 0` and have no gateway record.
+
+Fix:
+Added condition to display "Wallet" when `method_code == 0`.
+
+@if ($deposit->method_code == 0)
+    <span class="text--primary">@lang('Wallet')</span>
+@endif
+
+### Files Modified
+
+* `core/app/Traits/SupportTicketManager.php`
+
+---
+
+### 1. Added Admin Notification When Vendor Replies to Ticket
+
+**Issue**
+
+When vendors replied to an existing support ticket, admins did not receive a dashboard notification.
+Notifications were only triggered when the ticket was first created.
+
+**Fix**
+
+Added `AdminNotification` creation when a vendor/user replies to a ticket.
+
+```php
+$adminNotification = new AdminNotification();
+$adminNotification->owner_id  = $ticket->owner_id;
+$adminNotification->user_id   = $ticket->user_id;
+$adminNotification->title     = 'New reply in support ticket #' . $ticket->ticket;
+$adminNotification->click_url = urlPath('admin.ticket.view', $ticket->id);
+$adminNotification->save();
+```
+
+---
+
+### 2. Added Vendor Dashboard Notification When Admin Replies
+
+Added `OwnerNotification` when admin responds to vendor tickets so vendors receive bell notifications.
+
+```php
+OwnerNotification::create([
+    'owner_id'  => $ticket->owner_id,
+    'user_id'   => 0,
+    'title'     => 'Admin replied to ticket #' . $ticket->ticket,
+    'click_url' => route('owner.ticket.view', $ticket->ticket),
+    'is_read'   => 0
+]);
+```
+
+---
+
+### 3. Fixed MassAssignmentException for AdminNotification
+
+Using:
+
+```php
+AdminNotification::create([...])
+```
+
+caused:
+
+```
+MassAssignmentException: Add [owner_id] to fillable property
+```
+
+Resolved by switching to manual model creation instead of mass assignment.
+
+```php
+$adminNotification = new AdminNotification();
+$adminNotification->owner_id = $ticket->owner_id;
+$adminNotification->save();
+```
+
+---
+
+### Result
+
+Support ticket system now sends notifications correctly:
+
+* Vendor creates ticket → Admin notified
+* Admin replies → Vendor notified
+* Vendor replies again → Admin notified
+* Admin replies again → Vendor notified
+
+This ensures a complete **two-way notification system for ticket conversations**.
+
+
+## 2026-03-14 – Subscription Payment & Notification Fixes
+
+### Files Modified
+
+* `core/app/Http/Controllers/Gateway/PaymentController.php`
+* `core/app/Http/Controllers/Admin/DepositController.php`
+
+---
+
+### 1. Fixed Carbon addMonth TypeError (PHP 8.3)
+
+**Issue**
+Admin approval of subscription payments caused:
+
+```
+Carbon\Carbon::rawAddUnit(): Argument #3 ($value) must be of type int|float, string given
+```
+
+because `pay_for_month` was stored as a string.
+
+**Fix**
+
+Cast `pay_for_month` to integer and safely handle null `expire_at`.
+
+```php
+$months = (int) $deposit->pay_for_month;
+
+$baseDate = $owner->expire_at
+    ? Carbon::parse($owner->expire_at)
+    : now();
+
+$nextExpireDate = $baseDate->addMonths($months)->subDay();
+```
+
+Applied in:
+
+* `PaymentController::userDataUpdate()`
+* `PaymentController::billPayByWalletBalance()`
+
+---
+
+### 2. Vendor Dashboard Notification for Subscription Approval
+
+Default script only sent template/email notifications but did not create a record in `owner_notifications`, so the vendor dashboard bell icon did not update.
+
+Added dashboard notification:
+
+```php
+$ownerNotification = new OwnerNotification();
+$ownerNotification->owner_id  = $owner->id;
+$ownerNotification->user_id   = 0;
+$ownerNotification->title     = 'Subscription payment approved for ' . $deposit->pay_for_month . ' month(s)';
+$ownerNotification->click_url = urlPath('owner.payment.history') . '?search=' . $deposit->trx;
+$ownerNotification->save();
+```
+
+---
+
+### 3. Vendor Dashboard Notification for Rejected Subscription
+
+Added dashboard notification when admin rejects subscription payment.
+
+```php
+$ownerNotification = new OwnerNotification();
+$ownerNotification->owner_id  = $owner->id;
+$ownerNotification->user_id   = 0;
+$ownerNotification->title     = 'Subscription payment rejected';
+$ownerNotification->click_url = urlPath('owner.payment.history') . '?search=' . $deposit->trx;
+$ownerNotification->save();
+```
+
+---
+
+### 4. Fixed Typo in Rejection Logic
+
+Corrected:
+
+```
+pay_form_month
+```
+
+to:
+
+```
+pay_for_month
+```
+
+to prevent notification errors.
+
+---
+
+### Result
+
+After fixes:
+
+* Admin can approve or reject subscription payments without errors.
+* Vendor dashboard bell notification appears for:
+
+  * subscription approval
+  * subscription rejection
+* Subscription expiry calculation works correctly on PHP 8.3.
+
+
 1️⃣ Fix: Booking notification redirect logic
 
 Files:
