@@ -132,20 +132,35 @@ class DepositController extends Controller
 
 
     public function approve($id)
-    {
-        $deposit = Deposit::where('id', $id)->where('status', Status::PAYMENT_PENDING)->firstOrFail();
+{
+    $deposit = Deposit::where('id', $id)->where('status', Status::PAYMENT_PENDING)->firstOrFail();
 
-        if ($deposit->booking_id) {
-            $booking = Booking::find($deposit->booking_id);
-            bookingActionRecord($deposit->booking_id, $booking->owner_id, 'payment_approved');
-        }
-
-        PaymentController::userDataUpdate($deposit, true);
-
-        $notify[] = ['success', 'Payment request approved successfully'];
-
-        return to_route('admin.deposit.pending')->withNotify($notify);
+    if ($deposit->booking_id) {
+        $booking = Booking::find($deposit->booking_id);
+        bookingActionRecord($deposit->booking_id, $booking->owner_id, 'payment_approved');
     }
+
+    PaymentController::userDataUpdate($deposit, true);
+
+    // Vendor subscription notification
+    if ($deposit->owner_id != 0 && $deposit->pay_for_month != 0) {
+        $owner = $deposit->owner;
+
+        notify($owner, 'BILL_PAYMENT_APPROVED', [
+            'total_month'      => $deposit->pay_for_month,
+            'amount'           => showAmount($deposit->amount, currencyFormat: false),
+            'charge'           => showAmount($deposit->charge, currencyFormat: false),
+            'rate'             => $deposit->rate,
+            'method_name'      => $deposit->gateway->name,
+            'method_currency'  => $deposit->method_currency,
+            'method_amount'    => showAmount($deposit->final_amount, currencyFormat: false),
+        ]);
+    }
+
+    $notify[] = ['success', 'Payment request approved successfully'];
+
+    return to_route('admin.deposit.pending')->withNotify($notify);
+}
 
     public function reject(Request $request)
     {
@@ -160,18 +175,27 @@ class DepositController extends Controller
         $deposit->save();
 
         if ($deposit->owner_id != 0 && $deposit->pay_for_month != 0) {
-            $owner = $deposit->owner;
-            notify($owner, 'BILL_PAYMENT_MANUAL_REJECT', [
-                'total_month'      => $deposit->pay_form_month,
-                'amount'           => showAmount($deposit->amount, currencyFormat: false),
-                'charge'           => showAmount($deposit->charge, currencyFormat: false),
-                'rate'             => $deposit->rate,
-                'method_name'      => $deposit->gateway->name,
-                'method_currency'  => $deposit->method_currency,
-                'method_amount'    => showAmount($deposit->final_amount, currencyFormat: false),
-                'rejection_reason' => $deposit->admin_feedback
-            ]);
-        } elseif ($deposit->booking_id) {
+    $owner = $deposit->owner;
+
+    notify($owner, 'BILL_PAYMENT_MANUAL_REJECT', [
+        'total_month'      => $deposit->pay_for_month,
+        'amount'           => showAmount($deposit->amount, currencyFormat: false),
+        'charge'           => showAmount($deposit->charge, currencyFormat: false),
+        'rate'             => $deposit->rate,
+        'method_name'      => $deposit->gateway->name,
+        'method_currency'  => $deposit->method_currency,
+        'method_amount'    => showAmount($deposit->final_amount, currencyFormat: false),
+        'rejection_reason' => $deposit->admin_feedback
+    ]);
+
+    // Vendor dashboard notification 🔔
+    $ownerNotification = new \App\Models\OwnerNotification();
+    $ownerNotification->owner_id  = $owner->id;
+    $ownerNotification->user_id   = 0;
+    $ownerNotification->title     = 'Subscription payment rejected';
+    $ownerNotification->click_url = urlPath('owner.payment.history') . '?search=' . $deposit->trx;
+    $ownerNotification->save();
+} elseif ($deposit->booking_id) {
             $user = $deposit->user;
             $booking = Booking::find($deposit->booking_id);
 

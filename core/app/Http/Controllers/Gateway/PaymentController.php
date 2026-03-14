@@ -152,9 +152,11 @@ class PaymentController extends Controller {
     $payForMonth = intval($request->pay_for_month);
     $trx         = getTrx();
 
-    $nextExpireDate = Carbon::parse($owner->expire_at)
-        ->addMonth($payForMonth)
-        ->subDay();
+    $baseDate = $owner->expire_at
+    ? Carbon::parse($owner->expire_at)
+    : now();
+
+$nextExpireDate = $baseDate->addMonths($payForMonth)->subDay();
 
     $owner->balance -= $amount;
     $owner->expire_at = $nextExpireDate;
@@ -277,7 +279,13 @@ class PaymentController extends Controller {
                 $transaction->remark       = 'payment';
                 $transaction->save();
 
-                $nextExpireDate = Carbon::parse($owner->expire_at)->addMonth($deposit->pay_for_month)->subDay();
+                $months = (int) $deposit->pay_for_month;
+
+$baseDate = $owner->expire_at
+    ? Carbon::parse($owner->expire_at)
+    : now();
+
+$nextExpireDate = $baseDate->addMonths($months)->subDay();
 
                 $owner->expire_at = $nextExpireDate;
                 $owner->balance -= $deposit->amount;
@@ -295,14 +303,22 @@ class PaymentController extends Controller {
                 $transaction->save();
 
                 notify($owner, 'BILL_PAYMENT_COMPLETED', [
-                    'amount_per_month' => showAmount($deposit->amount / $deposit->pay_for_month, currencyFormat: false),
-                    'total_month'      => $deposit->pay_for_month,
-                    'amount'           => showAmount($deposit->amount, currencyFormat: false),
-                    'charge'           => showAmount($transaction->charge, currencyFormat: false),
-                    'final_amount'     => showAmount($deposit->final_amount, currencyFormat: false),
-                    'expire_at'        => showDateTime($owner->expire_at, 'd M, Y'),
-                    'trx'              => $transaction->trx,
-                ]);
+    'amount_per_month' => showAmount($deposit->amount / $deposit->pay_for_month, currencyFormat: false),
+    'total_month'      => $deposit->pay_for_month,
+    'amount'           => showAmount($deposit->amount, currencyFormat: false),
+    'charge'           => showAmount($transaction->charge, currencyFormat: false),
+    'final_amount'     => showAmount($deposit->final_amount, currencyFormat: false),
+    'expire_at'        => showDateTime($owner->expire_at, 'd M, Y'),
+    'trx'              => $transaction->trx,
+]);
+
+$ownerNotification = new OwnerNotification();
+$ownerNotification->owner_id  = $owner->id;
+$ownerNotification->user_id   = 0;
+$ownerNotification->title     = 'Subscription payment approved for ' . $deposit->pay_for_month . ' month(s)';
+$ownerNotification->click_url = urlPath('owner.payment.history') . '?search=' . $deposit->trx;
+$ownerNotification->save();
+
             } else {
                 $user = User::find($deposit->user_id);
                 //update booking
