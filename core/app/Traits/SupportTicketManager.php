@@ -226,6 +226,17 @@ trait SupportTicketManager
         $message->message = $request->message;
         $message->save();
 
+// Notify admin when vendor/user replies
+if ($this->userType != 'admin') {
+
+    $adminNotification = new AdminNotification();
+$adminNotification->owner_id  = $ticket->owner_id;
+$adminNotification->user_id   = $ticket->user_id;
+$adminNotification->title     = 'New reply in support ticket #' . $ticket->ticket;
+$adminNotification->click_url = urlPath('admin.ticket.view', $ticket->id);
+$adminNotification->save();
+}
+
         if ($request->hasFile('attachments')) {
             $uploadAttachments = $this->storeSupportAttachments($message->id);
             if ($uploadAttachments != 200) {
@@ -258,7 +269,7 @@ trait SupportTicketManager
             OwnerNotification::create([
         'owner_id'  => $ticket->owner_id,
         'user_id'   => 0,
-        'title'     => 'Admin replied to your support ticket',
+        'title'     => 'Admin replied to ticket #' . $ticket->ticket,
         'click_url' => route('owner.ticket.view', $ticket->ticket),
         'is_read'   => 0
         ]);
