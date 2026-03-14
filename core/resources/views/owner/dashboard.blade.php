@@ -86,10 +86,31 @@
 @endsection
 
 @if (authOwner()->expire_at)
+    @php
+        $expire = \Carbon\Carbon::parse(authOwner()->expire_at);
+        $daysLeft = now()->diffInDays($expire, false);
+    @endphp
+
     @push('breadcrumb-plugins')
-        <div class="alert custom--alert">
-            @lang('Subscription expired') {{ showDateTime(authOwner()->expire_at, 'd M,Y') }}
+        @if($expire->isFuture())
+
+    @if($daysLeft <= 5)
+        <div class="alert alert-warning">
+            ⚠ @lang('Your subscription expires in') {{ (int)$daysLeft }} @lang('days').
+            <a href="{{ route('owner.deposit.index') }}" class="fw-bold">@lang('Renew now')</a>
         </div>
+    @else
+        <div class="alert custom--alert">
+            @lang('Subscription active until') {{ showDateTime($expire, 'd M, Y') }}
+            ({{ (int)$daysLeft }} @lang('days left'))
+        </div>
+    @endif
+
+@else
+    <div class="alert alert-danger">
+        @lang('Subscription expired') {{ showDateTime($expire, 'd M, Y') }}
+    </div>
+@endif
     @endpush
 @endif
 
