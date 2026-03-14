@@ -1,5 +1,117 @@
 KOKANSTAYS – CUSTOM LOG
 
+1️⃣ Fix: Booking notification redirect logic
+
+Files:
+
+OwnerController.php
+
+ManageBookingRequestController.php
+
+git add core/app/Http/Controllers/Owner/OwnerController.php
+git add core/app/Http/Controllers/Owner/ManageBookingRequestController.php
+
+git commit -m "fix: correct booking notification redirect after request approval"
+
+Commit meaning:
+
+Pending → /vendor/booking/request/detail/{id}
+
+Approved / Cancelled → /vendor/booking/details/{id}
+
+Old notifications handled safely
+
+2️⃣ Fix: Vendor subscription history display
+
+File:
+
+core/resources/views/owner/payment_history.blade.php
+git add core/resources/views/owner/payment_history.blade.php
+
+git commit -m "fix: display wallet subscription transactions and details in vendor payment history"
+
+Commit meaning:
+
+Wallet payments appear
+
+Details popup works
+
+Gateway label corrected
+
+3️⃣ Improvement: Dashboard subscription expiry display
+
+File:
+
+core/resources/views/owner/dashboard.blade.php
+git add core/resources/views/owner/dashboard.blade.php
+
+git commit -m "improve: show vendor subscription expiry with remaining days in dashboard"
+
+Commit meaning:
+Instead of:
+
+1057.4279322587 days
+
+It now shows:
+
+1057 days left
+4️⃣ Fix: Gateway payment controller adjustment
+
+File:
+
+core/app/Http/Controllers/Gateway/PaymentController.php
+git add core/app/Http/Controllers/Gateway/PaymentController.php
+
+git commit -m "fix: adjust gateway payment controller for vendor subscription handling"
+
+## 2026-03-14 — Notification redirect fix for booking requests
+
+### Problem
+When a booking request was approved, the system deleted the booking request record.  
+Old notifications still pointed to:
+
+/vendor/booking/request/detail/{id}
+
+This resulted in **404 Page Not Found** after approval.
+
+### Solution
+
+Implemented intelligent redirect logic inside:
+
+core/app/Http/Controllers/Owner/OwnerController.php
+
+Function modified:
+
+notificationRead($id)
+
+Redirect behavior now:
+
+| Scenario | Redirect |
+|--------|---------|
+| Request still pending | /vendor/booking/request/detail/{id} |
+| Request already approved | /vendor/booking/details/{id} |
+| Booking cancelled | /vendor/booking/details/{id} |
+| Old notification | /vendor/booking/details/{id} |
+
+### Additional Change
+
+Modified booking approval logic in:
+
+core/app/Http/Controllers/Owner/ManageBookingRequestController.php
+
+Instead of deleting booking requests after approval, the system now updates the request status:
+
+Status::BOOKING_REQUEST_APPROVED
+
+This preserves request history and prevents notification links from breaking.
+
+### Result
+
+• No more 404 errors from old notifications  
+• Notifications redirect to correct booking pages  
+• Booking request history preserved  
+• System behavior aligned with author demo
+
 ## 2026-03-13 – PHP 8.3 Carbon addDays() Fix (BookingController)
 
 # Custom Changes – KokanStays
