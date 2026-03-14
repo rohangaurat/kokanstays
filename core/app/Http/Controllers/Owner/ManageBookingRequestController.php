@@ -128,8 +128,10 @@ class ManageBookingRequestController extends Controller {
         }
 
         BookedRoom::insert($bookingRoom);
-        BookingRequestDetail::where('booking_request_id', $bookingRequest->id)->delete();
-        $bookingRequest->delete();
+
+// Instead of deleting the booking request, update its status
+$bookingRequest->status = Status::BOOKING_REQUEST_APPROVED;
+$bookingRequest->save();
 
         $roomNumbers = Room::whereIn('id', $roomIds)->pluck('room_number')->toArray();
         $rooms       = implode(" , ", $roomNumbers);

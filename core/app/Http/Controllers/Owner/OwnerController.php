@@ -304,16 +304,45 @@ $widget['upcoming_checkout'] = Booking::currentOwner()->active()
     }
 
     public function notificationRead($id)
-    {
-        $notification = OwnerNotification::findOrFail($id);
-        $notification->is_read = Status::YES;
-        $notification->save();
-        $url = $notification->click_url;
-        if ($url == '#') {
-            $url = url()->previous();
-        }
-        return redirect($url);
+{
+    $notification = OwnerNotification::findOrFail($id);
+
+    $notification->is_read = Status::YES;
+    $notification->save();
+
+    $url = $notification->click_url;
+
+    if (!$url || $url == '#') {
+        return redirect()->route('owner.dashboard');
     }
+
+    // Handle booking request notification
+    if (str_contains($url, 'booking/request/detail')) {
+
+        $parts = explode('/', $url);
+        $requestId = end($parts);
+
+        $bookingRequest = \App\Models\BookingRequest::find($requestId);
+
+        // Request still exists AND still pending
+        if ($bookingRequest && $bookingRequest->status == Status::BOOKING_REQUEST_INITIAL) {
+            return redirect($url);
+        }
+
+        // Otherwise redirect to booking details
+        $booking = \App\Models\Booking::where('user_id', $notification->user_id)
+            ->latest()
+            ->first();
+
+        if ($booking) {
+            return redirect()->route('owner.booking.details', $booking->id);
+        }
+
+        return redirect()->route('owner.booking.active');
+    }
+
+    return redirect($url);
+}
 
     public function readAll()
     {
