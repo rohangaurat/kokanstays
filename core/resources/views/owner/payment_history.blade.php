@@ -21,7 +21,7 @@
                                 @forelse($deposits as $deposit)
                                     <tr>
                                         <td>
-                                            <span class="fw-bold"> <span class="text-primary">{{ __($deposit->gateway?->name) }}</span> </span>
+                                            <span class="fw-bold"> <span class="text-primary">{{ $deposit->method_code == 0 ? 'Wallet' : __($deposit->gateway?->name) }}</span> </span>
                                             <br>
                                             <small> {{ $deposit->trx }} </small>
                                         </td>
@@ -42,10 +42,37 @@
                                             <strong>{{ showAmount($deposit->final_amount, currencyFormat:false) }} {{ __($deposit->method_currency) }}</strong>
                                         </td>
                                         <td>@php echo $deposit->statusBadge; @endphp</td>
-                                        @php $details = $deposit->detail != null ? json_encode($deposit->detail) : null; @endphp
+@php
+if ($deposit->method_code == 0) {
+    $details = [
+        [
+            'name' => 'Payment Method',
+            'value' => 'Wallet'
+        ],
+        [
+            'name' => 'Subscription',
+            'value' => $deposit->pay_for_month . ' ' . Str::plural('month', $deposit->pay_for_month)
+        ],
+        [
+            'name' => 'Transaction ID',
+            'value' => $deposit->trx
+        ],
+        [
+            'name' => 'Amount',
+            'value' => showAmount($deposit->amount)
+        ],
+        [
+            'name' => 'Status',
+            'value' => 'Success'
+        ]
+    ];
+} else {
+    $details = $deposit->detail ?? [];
+}
+@endphp
                                         <td>
                                             <div class="button--group">
-                                                <button @if ($deposit->method_code >= 1000) data-info="{{ $details }}" @endif @if ($deposit->status == Status::PAYMENT_REJECT) data-admin_feedback="{{ $deposit->admin_feedback }}" @endif class="btn btn-sm btn-outline--primary @if ($deposit->method_code >= 1000) detailBtn @else disabled @endif" title="@lang('Detail')"
+                                                <button data-info='{{ json_encode($details, JSON_HEX_APOS) }}' @if ($deposit->status == Status::PAYMENT_REJECT) data-admin_feedback="{{ $deposit->admin_feedback }}" @endif class="btn btn-sm btn-outline--primary detailBtn" title="@lang('Detail')"
                                                     type="button">
                                                     <i class="la la-desktop"></i>@lang('Detail')
                                                 </button>
@@ -102,40 +129,43 @@
         (function($) {
             "use strict";
             $('.detailBtn').on('click', function() {
-                var modal = $('#detailModal');
+    var modal = $('#detailModal');
 
-                var userData = $(this).data('info');
-                var html = '';
-                if (userData) {
-                    userData.forEach(element => {
-                        if (element.type != 'file') {
-                            html += `
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>${element.name}</span>
-                                <span">${element.value}</span>
-                            </li>`;
-                        }
-                    });
-                }
+    var userData = $(this).data('info');
 
-                modal.find('.userData').html(html);
+    if (typeof userData === "string") {
+        userData = JSON.parse(userData);
+    }
 
-                if ($(this).data('admin_feedback') != undefined) {
-                    var ownerFeedback = `
-                        <div class="my-3">
-                            <strong>@lang('Admin Feedback')</strong>
-                            <p>${$(this).data('admin_feedback')}</p>
-                        </div>
-                    `;
-                } else {
-                    var ownerFeedback = '';
-                }
+    var html = '';
 
-                modal.find('.feedback').html(ownerFeedback);
+    if (userData) {
+        userData.forEach(element => {
+            html += `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>${element.name}</span>
+                <span>${element.value}</span>
+            </li>`;
+        });
+    }
 
+    modal.find('.userData').html(html);
 
-                modal.modal('show');
-            });
+    if ($(this).data('admin_feedback') != undefined) {
+        var ownerFeedback = `
+            <div class="my-3">
+                <strong>Admin Feedback</strong>
+                <p>${$(this).data('admin_feedback')}</p>
+            </div>
+        `;
+    } else {
+        var ownerFeedback = '';
+    }
+
+    modal.find('.feedback').html(ownerFeedback);
+
+    modal.modal('show');
+});
         })(jQuery);
     </script>
 @endpush
