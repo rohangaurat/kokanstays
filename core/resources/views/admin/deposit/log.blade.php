@@ -30,15 +30,26 @@
                                     <tr>
                                         <td>
                                             <span class="fw-bold">
-                                                <a
-                                                    href="{{ appendQuery('method', $deposit->method_code < 5000 ? @$deposit->gateway->alias : $deposit->method_code) }}">
-                                                    @if ($deposit->method_code < 5000)
-                                                        {{ __(@$deposit->gateway->name) }}
-                                                    @else
-                                                        @lang('Google Pay')
-                                                    @endif
-                                                </a>
-                                            </span>
+
+@if ($deposit->method_code == 0)
+
+    <span class="text--primary">@lang('Wallet')</span>
+
+@elseif ($deposit->method_code < 5000)
+
+    <a href="{{ appendQuery('method', @$deposit->gateway->alias) }}">
+        {{ __(@$deposit->gateway->name) }}
+    </a>
+
+@else
+
+    <a href="{{ appendQuery('method', $deposit->method_code) }}">
+        @lang('Google Pay')
+    </a>
+
+@endif
+
+</span>
                                             <br>
                                             <small> {{ $deposit->trx }} </small>
                                         </td>
