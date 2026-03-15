@@ -324,8 +324,10 @@ $widget['upcoming_checkout'] = Booking::currentOwner()->active()
 
         $bookingRequest = \App\Models\BookingRequest::find($requestId);
 
-        // Request still exists AND still pending
-        if ($bookingRequest && $bookingRequest->status == Status::BOOKING_REQUEST_INITIAL) {
+        // Request still exists AND still pending this VendorLine 
+        // Fix: BOOKING_REQUEST_INITIAL constant does not exist.
+// Pending booking requests use Status::BOOKING_REQUEST_PENDING.
+if ($bookingRequest && $bookingRequest->status == Status::BOOKING_REQUEST_PENDING) {
             return redirect($url);
         }
 
