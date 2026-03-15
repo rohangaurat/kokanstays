@@ -64,21 +64,27 @@
                             </div>
                         </div>
                     @endif
-                    @if ($dueAmount != 0)
-                        <div class="booking-card__right">
-                            <p class="price">
-                                {{ $dueAmount < 0 ? __('Receivable') : __('Payable') }}: {{ showAmount($dueAmount) }}
-                            </p>
-                            @if ($dueAmount > 0)
-                                <div class="booking-card__right-btn">
-                                    <a href="{{ route('user.deposit.index', $booking->id) }}"
-                                        class="btn btn--base btn--sm">
-                                        @lang('Pay Now')
-                                    </a>
-                                </div>
-                            @endif
-                        </div>
-                    @endif
+                    {{-- Custom Fix (KokanStays): correct payable/refundable logic for guest UI --}}
+@php
+$actualDue = $booking->total_amount - $booking->paid_amount;
+@endphp
+
+@if ($actualDue != 0)
+    <div class="booking-card__right">
+        <p class="price">
+            {{ $actualDue < 0 ? __('Refundable') : __('Payable') }}: {{ showAmount(abs($actualDue)) }}
+        </p>
+
+        @if ($actualDue > 0)
+            <div class="booking-card__right-btn">
+                <a href="{{ route('user.deposit.index', $booking->id) }}"
+                    class="btn btn--base btn--sm">
+                    @lang('Pay Now')
+                </a>
+            </div>
+        @endif
+    </div>
+@endif
                 </div>
             </div>
         </div>
