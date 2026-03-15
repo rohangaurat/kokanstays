@@ -97,7 +97,8 @@
             <div class="d-flex justify-content-between align-items-center flex-wrap">
                 <h5 class="title skeleton">@lang('Payment Information')</h5>
                 <div class="d-flex gap-1 align-items-center justify-content-end flex-wrap">
-                    @if ($booking->due_amount != 0)
+                    {{-- Custom Fix (KokanStays): show Pay Now only when guest actually owes money --}}
+@if ($booking->due_amount > 0)
                         <a href="{{ route('user.deposit.index', $booking->id) }}" class="btn btn--base btn--sm"
                             target="_blank">
                             <i class="las la-file-invoice-dollar"></i> @lang('Pay Now')
