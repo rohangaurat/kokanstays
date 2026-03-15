@@ -24,7 +24,14 @@
                                             </a>
                                         </td>
                                         <td>{{ $log->details ? __($log->details) : __(keyToTitle($log->remark)) }}</td>
-                                        <td>{{ __(@$log->actionBy->fullname) }}</td>
+                                        <td>
+    {{-- Fix: action_by = 0 means Admin approved the action (e.g., bank transfer payment approval) --}}
+    @if($log->action_by == 0)
+        Admin
+    @else
+        {{ __(@$log->actionBy->fullname) }}
+    @endif
+</td>
                                         <td>
                                             {{ showDateTime($log->created_at) }} <br>
                                             {{ diffForHumans($log->created_at) }}
