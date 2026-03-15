@@ -1,5 +1,143 @@
 KOKANSTAYS – CUSTOM LOG
 
+### Fix: Owner notification error (Undefined constant BOOKING_REQUEST_INITIAL)
+
+Date: 15 Mar 2026
+
+File:
+core/app/Http/Controllers/Owner/OwnerController.php
+
+Issue:
+Notification link `/vendor/notification/read/{id}` caused a fatal error:
+Undefined constant Status::BOOKING_REQUEST_INITIAL
+
+Reason:
+The constant `BOOKING_REQUEST_INITIAL` does not exist in `App\Constants\Status`.
+
+Solution:
+Replaced it with `Status::BOOKING_REQUEST_PENDING`.
+
+Old:
+Status::BOOKING_REQUEST_INITIAL
+
+New:
+Status::BOOKING_REQUEST_PENDING
+
+### Fix: Show "Admin" in Vendor Booking Actions when payment approved by admin
+
+**Date:** 15 Mar 2026
+**Project:** kokanstays.com (Multi-Hotel SaaS)
+
+#### Problem
+
+When a guest paid the remaining booking amount via **Bank Transfer to KokanStays**, the **admin approves the payment** from the admin panel.
+In the vendor panel **Booking Actions** page:
+
+`/vendor/report/booking-actions`
+
+the **Action By** column appeared **blank**, because the database stores:
+
+```
+action_by = 0
+```
+
+which represents **Admin**, but the Blade template only attempted to display the related `Owner` model.
+
+Example database rows:
+
+| id | action_by | remark           |
+| -- | --------- | ---------------- |
+| 11 | 0         | payment_approved |
+| 10 | 1         | key_handover     |
+
+So when `action_by = 0`, no owner existed and nothing was displayed.
+
+---
+
+#### Solution
+
+Handle `action_by = 0` directly in the Blade view and display **Admin**.
+
+File modified:
+
+```
+core/resources/views/owner/reports/booking_actions.blade.php
+```
+
+Original code:
+
+```php
+<td>{{ __(@$log->actionBy->fullname) }}</td>
+```
+
+Updated code:
+
+```php
+{{-- Fix: action_by = 0 means Admin approved the action (e.g., bank transfer payment approval) --}}
+<td>
+    {{ $log->action_by == 0 ? 'Admin' : optional($log->actionBy)->fullname }}
+</td>
+```
+
+---
+
+#### Result
+
+Vendor booking actions now correctly show:
+
+| Booking      | Details          | Action By       |
+| ------------ | ---------------- | --------------- |
+| U4M84GOB44LC | Payment approved | Admin           |
+| U4M84GOB44LC | Key handover     | Prathamesh More |
+
+---
+
+#### Notes
+
+* `action_by = 0` is used internally to represent **Admin actions**.
+* No database or model changes were required.
+* Only the Blade view was adjusted to correctly display Admin.
+
+
+### Payment Gateway UI Improvement
+**File:** core/resources/views/templates/basic/user/payment/deposit.blade.php
+
+**Changes:**
+- Updated payment gateway display labels to improve UI consistency.
+- Replaced gateway name text (e.g., bank name) with a cleaner **"Pay via"** label.
+- Gateway logos (Razorpay, Paytm, Instamojo, Bank Transfer) remain visible to identify the payment method.
+- Improves visual consistency of payment gateway cards.
+
+**Reason:**
+To create a cleaner and more uniform payment gateway selection interface for users during booking payments.
+
+## 2026-03-15 - Google Maps location fix on hotel detail page
+
+### Issue
+On the hotel detail page, clicking the map marker showed the message **"Place info couldn't load"** instead of displaying location details.
+
+### Cause
+The Google Maps iframe was using a coordinate-only query:
+https://www.google.com/maps?q=LAT,LNG&output=embed
+
+This sometimes prevents Google from loading place information when the marker is clicked.
+
+### Fix
+Updated the map embed to use a proper query including the hotel name and coordinates.
+
+### File Modified
+core/resources/views/templates/basic/hotel_detail.blade.php
+
+### Updated Code
+```html
+<iframe
+    width="100%"
+    height="450"
+    style="border:0"
+    loading="lazy"
+    allowfullscreen
+    src="https://www.google.com/maps?q={{ urlencode($hotel->hotelSetting->name) }},{{ $hotel->hotelSetting->latitude }},{{ $hotel->hotelSetting->longitude }}&z=16&output=embed">
+</iframe>
 
 ## 2026-03-14 – Support Ticket Notification Improvements
 
