@@ -194,13 +194,13 @@ class Booking extends Model
     }
 
     public function dueAmount(): Attribute
-    {
-        return new Attribute(
-            function () {
-                return getAmount($this->total_amount - $this->paid_amount);
-            }
-        );
-    }
+{
+    return new Attribute(
+        function () {
+            return getAmount($this->total_amount - $this->paid_amount);
+        }
+    );
+}
 
     public function taxPercent(): Attribute
     {

@@ -117,7 +117,10 @@ class ManageBookingController extends Controller
         $pageTitle         = "Bill Payment";
         return view('owner.booking.payment', compact('pageTitle', 'booking', 'totalFare', 'totalTaxCharge', 'canceledFare', 'canceledTaxCharge', 'returnedPayments', 'receivedPayments'));
     }
-
+// Custom Note (KokanStays):
+// This method handles both receiving payment and refunding guest.
+// If due_amount > 0 → guest pays vendor
+// If due_amount < 0 → vendor refunds guest (recorded as BOOKING_PAYMENT_RETURNED)
     public function payment(Request $request, $id)
     {
         $request->validate([
