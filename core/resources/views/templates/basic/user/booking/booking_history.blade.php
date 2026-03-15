@@ -4,14 +4,23 @@
         <div class="booking-main-wrapper">
             <div class="row gy-4">
                 @foreach ($bookings as $booking)
-                    @include('Template::partials.booking_card', [
-                        'booking' => $booking,
-                        'detailsRoute' => 'user.booking.details',
-                        'badge' => $booking->statusCustomBadge,
-                        'bookingId' => $booking->booking_number ?? null,
-                        'bookAgain' => false,
-                        'dueAmount' => $booking->dueAmount,
-                    ])
+                    {{-- Custom Fix (KokanStays): correct due/refund logic for booking history --}}
+@php
+$due = $booking->total_amount - $booking->paid_amount;
+
+$isRefundable = $due < 0;
+$displayAmount = abs($due);
+@endphp
+
+@include('Template::partials.booking_card', [
+    'booking' => $booking,
+    'detailsRoute' => 'user.booking.details',
+    'badge' => $booking->statusCustomBadge,
+    'bookingId' => $booking->booking_number ?? null,
+    'bookAgain' => false,
+    'dueAmount' => $displayAmount,
+    'isRefundable' => $isRefundable,
+])
                 @endforeach
             </div>
             @if ($bookings->hasPages())
