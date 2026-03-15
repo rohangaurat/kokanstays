@@ -80,10 +80,20 @@
                                         </td>
                                         <td>{{ showAmount($booking->total_amount) }}</td>
                                         <td>{{ showAmount($booking->paid_amount) }}</td>
-                                        @php $due = $booking->total_amount - $booking->paid_amount; @endphp
-                                        <td class="@if ($due < 0) text--danger @elseif($due > 0) text--warning @endif">
-                                            {{ showAmount($due) }}
-                                        </td>
+                                        {{-- Custom Fix (KokanStays) - Prevent negative due amount display for refundable bookings --}}
+{{-- If paid amount is greater than total amount, it means refund is required. --}}
+@php
+    $due = $booking->total_amount - $booking->paid_amount;
+@endphp
+
+<td class="@if ($due > 0) text--warning @elseif($due < 0) text--success @endif">
+    @if($due < 0)
+        {{-- Custom Fix: show refundable amount instead of negative due --}}
+        {{ showAmount(abs($due)) }}
+    @else
+        {{ showAmount($due) }}
+    @endif
+</td>
                                         @if (request()->routeIs('owner.booking.all') || request()->routeIs('owner.booking.active'))
                                             <td>@php echo $booking->statusBadge; @endphp </td>
                                         @endif
