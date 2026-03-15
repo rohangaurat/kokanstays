@@ -205,10 +205,14 @@
                             <div class="hotel-details__item widget_component-wrapper" id="scrollHeadingTwo">
                                 <h5 class="title skeleton">@lang('Where you\'ll be')</h5>
                                 <div class="map skeleton">
-                                    <iframe loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"
-                                        src="https://www.google.com/maps?q={{ $hotel->hotelSetting->latitude ?? '' }},{{ $hotel->hotelSetting->longitude ?? '' }},LNG&output=embed"
-                                        width="600" height="450" style="border:0;">
-                                    </iframe>
+                                    <iframe
+    width="100%"
+    height="450"
+    style="border:0"
+    loading="lazy"
+    allowfullscreen
+    src="https://www.google.com/maps?q={{ urlencode($hotel->hotelSetting->name) }},{{ $hotel->hotelSetting->latitude }},{{ $hotel->hotelSetting->longitude }}&z=16&output=embed">
+</iframe>
                                 </div>
                             </div>
 
