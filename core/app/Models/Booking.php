@@ -18,7 +18,7 @@ class Booking extends Model
         'checked_out_at' => 'datetime'
     ];
 
-    protected $appends = ['total_amount', 'due_amount', 'tax_percent'];
+    protected $appends = ['total_amount', 'due_amount', 'refundable_amount', 'tax_percent'];
 
     public function user()
     {
@@ -124,9 +124,9 @@ class Booking extends Model
     }
 
     public function scopeRefundable($query)
-    {
-        return $query->canceled()->whereRaw('(booking_fare + tax_charge + service_cost + extra_charge + cancellation_fee - extra_charge_subtracted - paid_amount) < 0');
-    }
+{
+    return $query->canceled()->whereRaw('(paid_amount - (booking_fare + tax_charge + service_cost + extra_charge + cancellation_fee - extra_charge_subtracted - total_discount)) > 0');
+}
 
     public function scopeKeyGiven($query)
     {
@@ -197,7 +197,31 @@ class Booking extends Model
 {
     return new Attribute(
         function () {
-            return getAmount($this->total_amount - $this->paid_amount);
+
+            $due = $this->total_amount - $this->paid_amount;
+
+            // prevent negative receivable
+            if ($due < 0) {
+                return 0;
+            }
+
+            return getAmount($due);
+        }
+    );
+}
+
+public function refundableAmount(): Attribute
+{
+    return new Attribute(
+        function () {
+
+            $refund = $this->paid_amount - $this->total_amount;
+
+            if ($refund > 0) {
+                return getAmount($refund);
+            }
+
+            return 0;
         }
     );
 }

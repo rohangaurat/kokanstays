@@ -1,12 +1,14 @@
 @extends('owner.layouts.app')
 @section('panel')
     @php
-        $totalFare = $booking->bookedRooms->sum('fare');
-        $totalTaxCharge = $booking->bookedRooms->sum('tax_charge');
-        $canceledFare = $booking->bookedRooms->where('status', Status::ROOM_CANCELED)->sum('fare');
-        $canceledTaxCharge = $booking->bookedRooms->where('status', Status::ROOM_CANCELED)->sum('tax_charge');
-        $due = $booking->total_amount - $booking->paid_amount;
-    @endphp
+$totalFare = $booking->bookedRooms->sum('fare');
+$totalTaxCharge = $booking->bookedRooms->sum('tax_charge');
+$canceledFare = $booking->bookedRooms->where('status', Status::ROOM_CANCELED)->sum('fare');
+$canceledTaxCharge = $booking->bookedRooms->where('status', Status::ROOM_CANCELED)->sum('tax_charge');
+
+$due = $booking->due_amount;
+$refund = $booking->refundable_amount;
+@endphp
 
     <div class="row gy-4">
         <div class="col-md-4 ">
@@ -100,14 +102,15 @@
                             </div>
 
                             <div>
-                                @if ($due < 0)
-                                    <small class="fw-500">@lang('Refundable') </small> <br>
-                                    <span class="text--warning">{{ showAmount(abs($due)) }}</span>
-                                @else
-                                    <small class="fw-500">@lang('Receivable from User')</small><br>
-                                    <span class="@if ($due > 0) text--danger @else text--success @endif">
-                                        {{ showAmount(abs($due)) }}</span>
-                                @endif
+                                @if ($refund > 0)
+    <small class="fw-500">@lang('Refundable')</small><br>
+    <span class="text--warning">{{ showAmount($refund) }}</span>
+@else
+    <small class="fw-500">@lang('Receivable from User')</small><br>
+    <span class="@if ($due > 0) text--danger @else text--success @endif">
+        {{ showAmount($due) }}
+    </span>
+@endif
                             </div>
                         </div>
 
@@ -434,11 +437,14 @@
                                     <span>@lang('Refunded')</span>
                                     <span>{{ showAmount($returnedPayments->sum('amount')) }}</span>
                                 </li>
-                                @php $due = $booking->due_amount; @endphp
+                                @php
+$due = $booking->due_amount;
+$refund = $booking->refundable_amount;
+@endphp
                                 <li class="d-flex justify-content-between list-group-item align-items-start">
-                                    @if ($due < 0)
+                                    @if ($refund > 0)
                                         <span class="text--warning fw-bold">@lang('Refundable') </span>
-                                        <span class="text--warning fw-bold">{{ showAmount(abs($due)) }}</span>
+                                        <span class="text--warning fw-bold">{{ showAmount($refund) }}</span>
                                     @else
                                         <span
                                             class="@if ($due > 0) text--danger @else text--success @endif fw-bold">
@@ -446,7 +452,7 @@
                                         </span>
                                         <span
                                             class="@if ($due > 0) text--danger @else text--success @endif fw-bold">
-                                            {{ showAmount(abs($due)) }}
+                                            {{ showAmount($due) }}
                                         </span>
                                     @endif
                                 </li>

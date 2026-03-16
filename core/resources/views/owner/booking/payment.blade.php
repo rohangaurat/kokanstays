@@ -1,6 +1,9 @@
 @extends('owner.layouts.app')
 @section('panel')
-    @php $due = $booking->due_amount @endphp
+    @php 
+$due = $booking->due_amount;
+$refund = $booking->refundable_amount ?? 0;
+@endphp
 
     <div class="row gy-4">
         <div class="col-xxl-6 col-lg-12 col-md-6">
@@ -22,9 +25,9 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            @if ($due < 0)
+                            @if ($refund > 0)
                                 <h5 class="card-title">@lang('Refund Amount')</h5>
-                                <h5 class="text--danger text-center">@lang('Refundable Amount'): {{ showAmount(abs($due)) }}</h5>
+                                <h5 class="text--danger text-center">@lang('Refundable Amount'): {{ showAmount($refund) }}</h5>
                             @else
                                 <h5 class="card-title"> @lang('Receive Payment')</h5>
                                 <h5 class="text-center text--success"> @lang('Receivable Amount'): {{ showAmount(abs($due)) }}</h5>
@@ -33,15 +36,29 @@
                             <form action="{{ route('owner.booking.payment', $booking->id) }}" method="post">
                                 @csrf
                                 <div class="form-group">
-                                    <label>@lang('Enter Amount')</label>
-                                    <div class="input-group">
-                                        <input class="form-control" min="0" name="amount" required step="any" type="number">
-                                        <span class="input-group-text">{{ __(gs()->cur_text) }}</span>
-                                    </div>
-                                </div>
+    <label>@lang('Enter Amount')</label>
+    <div class="input-group">
+        <input 
+        class="form-control"
+        min="0"
+        max="{{ $refund > 0 ? $refund : $due }}"
+        name="amount"
+        required
+        step="0.01"
+        type="number">
+        <span class="input-group-text">{{ __(gs()->cur_text) }}</span>
+    </div>
+</div>
                                 @can('owner.booking.payment')
-                                    <button @disabled(abs($due) == 0) class="btn btn--primary w-100 h-45" type="submit">@lang('Submit')</button>
-                                @endcan
+<button 
+    @disabled(abs($due) == 0 && $refund == 0)
+    class="btn {{ $refund > 0 ? 'btn--danger' : 'btn--primary' }} w-100 h-45"
+    type="submit">
+
+    {{ $refund > 0 ? __('Process Refund') : __('Receive Payment') }}
+
+</button>
+@endcan
                             </form>
                         </div>
                     </div>

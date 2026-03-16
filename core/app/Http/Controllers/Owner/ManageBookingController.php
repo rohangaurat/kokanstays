@@ -128,19 +128,24 @@ class ManageBookingController extends Controller
         ]);
 
         $booking = Booking::currentOwner()->findOrFail($id);
-        $due     = $booking->due_amount;
 
-        if ($request->amount > abs($due)) {
-            $message = $due <= 0 ? 'Amount can\'t be greater than receivable amount' : 'Amount can\'t be greater than payable amount';
-            $notify[] = ['error', $message];
-            return back()->withNotify($notify);
-        }
+// real calculation (do NOT use accessor)
+$due = $booking->total_amount - $booking->paid_amount;
 
-        if ($due > 0) {
-            return $this->receivePayment($booking, $request->amount);
-        }
+if ($request->amount > abs($due)) {
+    $message = $due < 0 
+        ? 'Amount can\'t be greater than refundable amount' 
+        : 'Amount can\'t be greater than receivable amount';
 
-        return $this->returnPayment($booking, $request->amount);
+    $notify[] = ['error', $message];
+    return back()->withNotify($notify);
+}
+
+if ($due > 0) {
+    return $this->receivePayment($booking, $request->amount);
+}
+
+return $this->returnPayment($booking, $request->amount);
     }
 
     public function addExtraCharge(Request $request, $id)

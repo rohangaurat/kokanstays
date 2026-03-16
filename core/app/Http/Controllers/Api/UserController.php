@@ -199,59 +199,119 @@ public function home()
     public function bookingHistory()
     {
         $bookings = Booking::where('user_id', auth()->id())
-            ->with('bookedRooms', 'bookedRooms.room.roomType:id,name',  'owner.hotelSetting')
-            ->latest()
-            ->apiQuery();
+    ->with('bookedRooms', 'bookedRooms.room.roomType:id,name', 'owner.hotelSetting')
+    ->latest()
+    ->apiQuery();
+
+// $bookings->getCollection()->transform(function ($booking) {
+
+//     // Custom Fix (KokanStays): normalize due amount for mobile app
+//     $due = $booking->total_amount - $booking->paid_amount;
+
+//     // For mobile apps expecting positive due
+//     if ($due < 0) {
+//         $booking->due_amount = abs($due);
+//         $booking->paid_amount = $booking->total_amount; 
+//         $booking->is_refundable = true;
+//     } else {
+//         $booking->due_amount = $due;
+//         $booking->is_refundable = false;
+//     }
+
+//     return $booking;
+// });
 
         $notify[] = 'Booking history';
         return responseSuccess('booking_history', $notify, ['bookings' => $bookings]);
     }
 
     public function bookingDetail($id)
-    {
-        $booking = Booking::where('user_id', auth()->id())->with([
-            'usedExtraService.room',
-            'usedExtraService.extraService',
-            'payments',
-            'guest',
-            'owner:id,firstname',
-            'owner.hotelSetting:id,owner_id,location_id,city_id,country_id,name,image,tax_name',
-            'owner.hotelSetting.location',
-            'owner.hotelSetting.city',
-            'owner.hotelSetting.country'
-        ])->where('id', $id)->first();
+{
+    $booking = Booking::where('user_id', auth()->id())->with([
+        'usedExtraService.room',
+        'usedExtraService.extraService',
+        'payments',
+        'guest',
+        'owner:id,firstname',
+        'owner.hotelSetting:id,owner_id,location_id,city_id,country_id,name,image,tax_name',
+        'owner.hotelSetting.location',
+        'owner.hotelSetting.city',
+        'owner.hotelSetting.country'
+    ])->where('id', $id)->first();
 
-        if (!$booking) {
-            $notify[] = 'Booking record not found';
-            return ResponseError('booking_detail', $notify);
-        }
-
-        $bookedRooms = BookedRoom::where('booking_id', $booking->id)->with('room', 'roomType:id,name')->get()->groupBy('booked_for');
-
-        $paymentInfo = [
-            'subtotal'            => $booking->booking_fare - $booking->total_discount,
-            'total_amount'        => $booking->total_amount,
-            'canceled_fare'       => $booking->bookedRooms()->where('status', Status::ROOM_CANCELED)->sum('fare'),
-            'canceled_tax_charge' => $booking->bookedRooms()->where('status', Status::ROOM_CANCELED)->sum('tax_charge'),
-            'payment_received'    => $booking->payments->where('type', 'BOOKING_PAYMENT_RECEIVED')->sum('amount'),
-            'refunded'            => $booking->payments->where('type', 'BOOKING_PAYMENT_RETURNED')->sum('amount'),
-        ];
-
-        $reviews = Review::reviews()->where('owner_id', $booking->owner_id)->with('replies', 'user')->orderByDesc('id')->get();
-
-        $authUserReview = Review::reviews()->where('booking_id', $id)->first();
-
-        $notify[] = 'Booking Detail';
-        return responseSuccess('booking_detail', $notify, [
-            'booking' => $booking,
-            'bookedRooms' => $bookedRooms,
-            'paymentInfo' =>  $paymentInfo,
-            'reviews' => $reviews,
-            'REVIEW_TYPE_USER'  => Status::REVIEW_TYPE_USER,
-            'REVIEW_TYPE_OWNER' => Status::REVIEW_TYPE_OWNER,
-            'user_review'    => auth()->check() && !$authUserReview && $booking->status == Status::BOOKING_CHECKOUT ? true : false
-        ]);
+    if (!$booking) {
+        $notify[] = 'Booking record not found';
+        return ResponseError('booking_detail', $notify);
     }
+
+    $bookedRooms = BookedRoom::where('booking_id', $booking->id)
+        ->with('room', 'roomType:id,name')
+        ->get()
+        ->groupBy('booked_for');
+
+    // Payment calculations
+    $paymentReceived = $booking->payments
+        ->where('type', 'BOOKING_PAYMENT_RECEIVED')
+        ->sum('amount');
+
+    $refunded = $booking->payments
+        ->where('type', 'BOOKING_PAYMENT_RETURNED')
+        ->sum('amount');
+
+    $due = $booking->total_amount - $paymentReceived;
+
+if ($due < 0) {
+
+    $dueAmount = 0;
+    $isRefundable = true;
+
+    $booking->paid_amount = $paymentReceived;
+    $booking->due_amount = 0;
+
+} else {
+
+    $dueAmount = $due;
+    $isRefundable = false;
+
+    $booking->paid_amount = $paymentReceived;
+    $booking->due_amount = $due;
+}
+
+    $paymentInfo = [
+    'subtotal'            => $booking->booking_fare - $booking->total_discount,
+    'total_amount'        => $booking->total_amount,
+    'canceled_fare'       => $booking->bookedRooms()->where('status', Status::ROOM_CANCELED)->sum('fare'),
+    'canceled_tax_charge' => $booking->bookedRooms()->where('status', Status::ROOM_CANCELED)->sum('tax_charge'),
+
+    'payment_received'    => $paymentReceived,
+
+    'refunded'            => $refunded,
+    'due_amount'          => $dueAmount,
+    'is_refundable'       => $isRefundable
+];
+
+    $reviews = Review::reviews()
+        ->where('owner_id', $booking->owner_id)
+        ->with('replies', 'user')
+        ->orderByDesc('id')
+        ->get();
+
+    $authUserReview = Review::reviews()
+        ->where('booking_id', $id)
+        ->first();
+
+    $notify[] = 'Booking Detail';
+
+    return responseSuccess('booking_detail', $notify, [
+        'booking'            => $booking,
+        'bookedRooms'        => $bookedRooms,
+        'paymentInfo'        => $paymentInfo,
+        'reviews'            => $reviews,
+        'REVIEW_TYPE_USER'   => Status::REVIEW_TYPE_USER,
+        'REVIEW_TYPE_OWNER'  => Status::REVIEW_TYPE_OWNER,
+        'user_review'        => auth()->check() && !$authUserReview && $booking->status == Status::BOOKING_CHECKOUT
+    ]);
+}
 
     public function addDeviceToken(Request $request)
     {
