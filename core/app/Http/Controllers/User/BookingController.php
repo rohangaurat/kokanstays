@@ -31,6 +31,10 @@ class BookingController extends Controller {
 
         $user  = auth()->user();
         $owner = Owner::active()->notExpired()->with('hotelSetting')->find($request->owner_id);
+        if (!$owner) {
+    $notify[] = ['error', 'Hotel not available'];
+    return back()->withNotify($notify);
+}
 
         $requestList        = [];
         $totalAmount        = 0;
@@ -38,22 +42,27 @@ class BookingController extends Controller {
         $totalChildCapacity = 0;
         $checkIn            = Carbon::parse($request->checkin);
         $checkout           = Carbon::parse($request->checkout);
-        $stayingDays        = diffInDays($checkIn, $checkout);
+        $stayingDays = max(1, diffInDays($checkIn, $checkout));
 
         foreach ($request->room_types as $roomTypeId => $roomCount) {
-            $roomType = RoomType::active()
-                ->where('id', $roomTypeId)
-                ->where('owner_id', $request->owner_id)
-                ->with(['rooms' => function ($rooms) use ($request) {
-                    $rooms->isAvailableRoom($request->checkin, $request->checkout);
-                }])
-                ->first();
+
+    if ($roomCount <= 0) {
+        continue;
+    }
+
+    $roomType = RoomType::active()
+        ->where('id', $roomTypeId)
+        ->where('owner_id', $request->owner_id)
+        ->with(['rooms' => function ($rooms) use ($request) {
+            $rooms->isAvailableRoom($request->checkin, $request->checkout);
+        }])
+        ->first();
 
             if (!$roomType) {
                 $notify[] = ['error', 'Room type not found'];
                 return back()->withNotify($notify);
             }
-            if (count($roomType->rooms) < $roomCount) {
+            if ($roomType->rooms->count() < $roomCount) {
                 $notify[] = ['error', 'Selected room type is not available in the requested quantity'];
                 return back()->withNotify($notify);
             }
@@ -133,7 +142,7 @@ class BookingController extends Controller {
 
         return $request->validate([
             'checkin'        => 'required|date_format:Y-m-d|after:yesterday',
-            'checkout'       => 'required|date_format:Y-m-d|after:check_in',
+            'checkout'       => 'required|date_format:Y-m-d|after:checkin',
             'owner_id'       => 'required|in:' . implode(',', $activeOwnerIDs),
             'room_types'     => 'required|array',
             'room_types.*'   => 'integer|exists:room_types,id',
@@ -202,7 +211,8 @@ class BookingController extends Controller {
 }
 
     public function bookingDelete(Request $request, $id) {
-        $bookingRequest = BookingRequest::initial()->findOrFail($id);
+        $bookingRequest = BookingRequest::where('user_id', auth()->id())
+    ->findOrFail($id);
         BookingRequestDetail::where('booking_request_id', $bookingRequest->id)->delete();
         $bookingRequest->delete();
 
