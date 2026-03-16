@@ -326,8 +326,14 @@ $ownerNotification->save();
                 $booking->paid_amount += $deposit->amount;
                 $booking->save();
 
-                //payment log
-                $booking->createPaymentLog($deposit->amount, 'BOOKING_PAYMENT_RECEIVED', @$deposit->gateway->name, true, $booking->owner_id);
+//payment log
+$booking->createPaymentLog(
+    $deposit->amount,
+    'BOOKING_PAYMENT_RECEIVED',
+    @$deposit->gateway->name,
+    true,
+    0 // payment received by platform
+);
 
                 $owner = Owner::find($booking->owner_id);
                 $owner->balance += $deposit->amount;

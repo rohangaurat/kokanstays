@@ -180,22 +180,26 @@ class BookingController extends Controller {
     }
 
     public function bookingInvoice($id) {
-        $booking = Booking::where('user_id', auth()->id())->with([
-            'activeBookedRooms' => function ($query) {
-                $query->select('id', 'booking_id', 'room_id', 'fare', 'status', 'booked_for');
-            },
-            'activeBookedRooms.room:id,room_type_id,room_number',
-            'activeBookedRooms.room.roomType:id,name',
+
+    $booking = Booking::where('user_id', auth()->id())
+        ->with([
+            'bookedRooms',
+            'bookedRooms.room.roomType',
             'usedExtraService.room',
             'usedExtraService.extraService',
-            'user:id,firstname,lastname,username,email,mobile',
-            'guest',
-        ])->findOrFail($id);
+            'payments', // VERY IMPORTANT
+            'owner.hotelSetting',
+            'user',
+            'guest'
+        ])
+        ->findOrFail($id);
 
-        $data = ['booking' => $booking];
-        $pdf  = PDF::loadView('partials.invoice', $data);
-        return $pdf->stream($booking->booking_number . '.pdf');
-    }
+    $data = ['booking' => $booking];
+
+    $pdf = PDF::loadView('partials.invoice', $data);
+
+    return $pdf->stream($booking->booking_number . '.pdf');
+}
 
     public function bookingDelete(Request $request, $id) {
         $bookingRequest = BookingRequest::initial()->findOrFail($id);

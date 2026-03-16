@@ -19,7 +19,7 @@
     </tr>
 @endif
 <tr class="custom-table__subhead">
-    <td class="text-end" colspan="2">{{ __($booking->owner->hotelSetting->tax_name) }}</td>
+    <td class="text-end" colspan="2">{{ __($booking->owner->hotelSetting->tax_name ?? 'Tax') }}</td>
     <td> {{ showAmount($totalTaxCharge) }}</td>
 </tr>
 
@@ -48,11 +48,11 @@
 @if ($due > 0)
     <tr class="custom-table__subhead">
         <td class="text-end" colspan="2">@lang('Due')</td>
-        <td> = {{ showAmount($due) }}</td>
+        <td>= {{ showAmount($due) }}</td>
     </tr>
-@elseif($due < 0)
+@elseif ($due < 0)
     <tr class="custom-table__subhead">
         <td class="text-end" colspan="2">@lang('Refundable')</td>
-        <td> = {{ showAmount(abs($due)) }}</td>
+        <td>= {{ showAmount(abs($due)) }}</td>
     </tr>
 @endif

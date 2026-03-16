@@ -1,12 +1,10 @@
 @page {
-    size: 8.27in 11.7in;
+    size: A4;
     margin: .5in;
 }
 
 body {
-    font-family: "Arial", sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
+    font-family: "DejaVu Sans", sans-serif !important;
 }
 
 /* Typography */
@@ -24,7 +22,7 @@ body {
 
 h1,
 .h1 {
-    font-family: "Arial", sans-serif;
+    font-family: "DejaVu Sans", sans-serif;
     margin-top: 8px;
     margin-bottom: 8px;
     font-size: 67px;
@@ -34,7 +32,7 @@ h1,
 
 h2,
 .h2 {
-    font-family: "Arial", sans-serif;
+    font-family: "DejaVu Sans", sans-serif;
     margin-top: 8px;
     margin-bottom: 8px;
     font-size: 50px;
@@ -44,7 +42,7 @@ h2,
 
 h3,
 .h3 {
-    font-family: "Arial", sans-serif;
+    font-family: "DejaVu Sans", sans-serif;
     margin-top: 8px;
     margin-bottom: 8px;
     font-size: 38px;
@@ -54,7 +52,7 @@ h3,
 
 h4,
 .h4 {
-    font-family: "Arial", sans-serif;
+    font-family: "DejaVu Sans", sans-serif;
     margin-top: 8px;
     margin-bottom: 8px;
     font-size: 28px;
@@ -64,7 +62,7 @@ h4,
 
 h5,
 .h5 {
-    font-family: "Arial", sans-serif;
+    font-family: "DejaVu Sans", sans-serif;
     margin-top: 8px;
     margin-bottom: 8px;
     font-size: 20px;
@@ -74,7 +72,7 @@ h5,
 
 h6,
 .h6 {
-    font-family: "Arial", sans-serif;
+    font-family: "DejaVu Sans", sans-serif;
     margin-top: 8px;
     margin-bottom: 8px;
     font-size: 16px;

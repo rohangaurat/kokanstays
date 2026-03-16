@@ -2,190 +2,403 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta content="IE=edge" http-equiv="X-UA-Compatible" />
-    <meta content="IE=edge" http-equiv="X-UA-Compatible" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>{{ gs()->siteName('Invoice') }}</title>
-    <link href="{{ siteFavicon() }}" rel="shortcut icon" type="image/png">
-    <link rel="stylesheet" href="{{ asset('assets/owner/css/invoice.css') }}">
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{{ gs()->site_name }} - Invoice</title>
+
+<link rel="shortcut icon" href="{{ siteFavicon() }}" type="image/png">
+<link rel="stylesheet" href="{{ asset('assets/owner/css/invoice.css') }}">
+
+<style>
+body{
+font-family: DejaVu Sans, sans-serif;
+font-size:13px;
+color:#333;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th, td{
+padding:8px;
+}
+
+thead{
+background:#f5f5f5;
+}
+
+.section-title{
+margin-top:25px;
+margin-bottom:10px;
+font-weight:bold;
+font-size:16px;
+}
+
+.header-table td{
+vertical-align:top;
+}
+
+.text-right{
+text-align:right;
+}
+
+.footer{
+margin-top:40px;
+text-align:center;
+font-size:12px;
+color:#777;
+}
+</style>
+
 </head>
 
 <body>
-    @php
-        $extraService = count($booking->usedExtraService);
-        $due = $booking->total_amount - $booking->paid_amount;
-        $bookedRooms = $booking->bookedRooms->groupBy('booked_for');
-        $totalFare = $booking->bookedRooms->sum('fare');
-        $totalTaxCharge = $booking->bookedRooms->sum('tax_charge');
-        $canceledFare = $booking->bookedRooms->where('status', Status::ROOM_CANCELED)->sum('fare');
-        $canceledTaxCharge = $booking->bookedRooms->where('status', Status::ROOM_CANCELED)->sum('tax_charge');
-    @endphp
-    <header>
-        <div class="row">
-            <div class="col-12">
-                <div class="list--row">
-                    <div class="logo float-left">
-                        <img alt="@lang('image')" class="logo-img" src="{{ siteLogo('dark') }}">
-                    </div>
-                    <h6 class="float-right m-0" style="margin: 0;"> {{ date('Y-m-d') }}</h6>
-                </div>
-            </div>
-        </div>
-    </header>
-    <main>
-        <div class="row">
-            <div class="col-12">
-                <div class="address list--row">
-                    <div class="float-left">
-                        <h5 class="primary-text d-block fw-md">@lang('Invoice To')</h5>
-                        <ul class="list" style="--gap: 0.3rem">
-                            <li>
-                                <div class="list list--row gap-5rem">
-                                    <span class="strong">@lang('Name') :</span>
-                                    <span>{{ $booking->user ? $booking->user->fullname : $booking->guest->name }}</span>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="list list--row gap-5rem">
-                                    <span class="strong">@lang('Email') :</span>
-                                    <span>{{ $booking->user ? $booking->user->email : $booking->guest->email }}</span>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="list list--row gap-5rem">
-                                    <span class="strong">@lang('Mobile') :</span>
-                                    <span>+{{ $booking->user ? $booking->user->mobile : $booking->guest->mobile }}</span>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="float-right">
-                        <ul class="text-end">
-                            <li>
-                                <h5 class="primary-text d-block fw-md"> @lang('Bill Information') </h5>
-                            </li>
 
-                            <li>
-                                <span class="d-inline-block strong">@lang('Booking No') :</span>
-                                <span class="d-inline-block">{{ $booking->booking_number }}</span>
-                            </li>
+@php
+$extraService = count($booking->usedExtraService);
 
-                            <li>
-                                <span class="d-inline-block strong">@lang('Booking Date') :</span>
-                                <span class="d-inline-block">{{ showDateTime($booking->created_at) }}</span>
-                            </li>
+$due = max(0, $booking->total_amount - $booking->paid_amount);
 
-                            <li>
-                                <span class="d-inline-block strong">@lang('Total Amount') :</span>
-                                <span class="d-inline-block">{{ showAmount($booking->total_amount) }}</span>
-                            </li>
-                            <li>
-                                <span class="d-inline-block strong">@lang('Paid Amount') :</span>
-                                <span class="d-inline-block">{{ showAmount($booking->paid_amount) }}</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="body">
-                    <h5 class="title">@lang('Room\'s Details')</h5>
-                    <table class="table-bordered custom-table table">
-                        <thead>
-                            <tr>
-                                <th>@lang('Room No.')</th>
-                                <th>@lang('Room Type')</th>
-                                <th>@lang('Fare')</th>
-                            </tr>
-                        </thead>
+$bookedRooms = $booking->bookedRooms->groupBy('booked_for');
 
-                        <tbody>
-                            @foreach ($bookedRooms as $key => $item)
-                                <tr class="custom-table__subhead">
-                                    <td colspan="3" style="text-align: center;">
-                                        {{ __(showDateTime($key, 'd M, Y')) }}
-                                    </td>
-                                </tr>
-                                @foreach ($item as $booked)
-                                    <tr>
-                                        <td class="text-start">{{ __($booked->room->room_number) }}
-                                            @if ($booked->status == Status::ROOM_CANCELED)
-                                                - @lang('Canceled')
-                                            @endif
-                                        </td>
-                                        <td>{{ __($booked->room->roomType->name) }}</td>
-                                        <td>{{ __(showAmount($booked->fare)) }}</td>
-                                    </tr>
-                                @endforeach
-                            @endforeach
+$totalFare = $booking->bookedRooms->sum('fare');
 
-                            <tr class="custom-table__subhead">
-                                <td class="text-end" colspan="2">@lang('Total Fare')</td>
-                                <td>{{ showAmount($totalFare) }}</td>
-                            </tr>
+$totalTaxCharge = $booking->bookedRooms->sum('tax_charge');
 
-                            @if (!$extraService)
-                                @include('partials.invoice_calculation_summary')
-                            @endif
-                        </tbody>
-                    </table>
+$canceledFare = $booking->bookedRooms->where('status', Status::ROOM_CANCELED)->sum('fare');
 
-                    @if ($extraService)
-                        @php
-                            $extraServices = $booking->usedExtraService->groupBy('service_date');
-                        @endphp
-                        <div class="extra-service">
-                            <div class="mt-10">
-                                <h5 class="title">@lang('Service Details')</h5>
-                            </div>
-                            <table class="table-bordered custom-table table">
-                                <thead>
-                                    <tr>
-                                        <th>@lang('Room No.')</th>
-                                        <th>@lang('Service')</th>
-                                        <th>@lang('Quantity')</th>
-                                        <th>@lang('Unit Price')</th>
-                                        <th>@lang('Amount')</th>
-                                    </tr>
-                                </thead>
+$canceledTaxCharge = $booking->bookedRooms->where('status', Status::ROOM_CANCELED)->sum('tax_charge');
 
-                                <tbody>
-                                    @foreach ($extraServices as $key => $serviceItems)
-                                        <tr class="custom-table__subhead">
-                                            <td colspan="5" style="text-align: center;">{{ __(showDateTime($key, 'd M, Y')) }}</td>
-                                        </tr>
-                                        @foreach ($serviceItems as $service)
-                                            <tr>
-                                                <td>{{ __($service->room->room_number) }}</td>
-                                                <td>{{ __($service->extraService->name) }}</td>
-                                                <td>{{ $service->qty }}</td>
-                                                <td>{{ showAmount($service->unit_price) }}</td>
-                                                <td>{{ showAmount($service->total_amount) }}</td>
-                                            </tr>
-                                        @endforeach
-                                    @endforeach
-                                    <tr class="custom-table__subhead">
-                                        <td class="text-end" colspan="4">@lang('Total Charge')</td>
-                                        <td>{{ showAmount($booking->service_cost) }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+$payments = $booking->payments->where('type', 'BOOKING_PAYMENT_RECEIVED');
 
-                        <div class="summary avoid_page_break">
-                            <div class="mt-10">
-                                <h5 class="title">@lang('Billing Details')</h5>
-                            </div>
-                            <table class="table-bordered custom-table table">
-                                <tbody>
-                                    @include('partials.invoice_calculation_summary')
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </main>
+$refunds = $booking->payments->where('type', 'BOOKING_PAYMENT_RETURNED');
+@endphp
+
+
+{{-- HEADER --}}
+<table class="header-table">
+<tr>
+
+<td style="width:50%">
+<img src="{{ siteLogo('dark') }}" style="height:60px;">
+</td>
+
+<td class="text-right" style="width:50%">
+<h2 style="margin:0;">@lang('INVOICE')</h2>
+<span>{{ date('d M Y') }}</span>
+</td>
+
+</tr>
+</table>
+
+
+{{-- CUSTOMER + BILL INFO --}}
+<table style="margin-top:25px">
+<tr>
+
+<td style="width:50%">
+<h4>@lang('Invoice To')</h4>
+
+<p>
+<strong>@lang('Name'):</strong>
+{{ $booking->user ? $booking->user->fullname : $booking->guest->name }}<br>
+
+<strong>@lang('Email'):</strong>
+{{ $booking->user ? $booking->user->email : $booking->guest->email }}<br>
+
+<strong>@lang('Mobile'):</strong>
++{{ $booking->user ? $booking->user->mobile : $booking->guest->mobile }}
+</p>
+</td>
+
+
+<td style="width:50%" class="text-right">
+<h4>@lang('Bill Information')</h4>
+
+<p>
+<strong>@lang('Booking No'):</strong>
+{{ $booking->booking_number }}<br>
+
+<strong>@lang('Booking Date'):</strong>
+{{ showDateTime($booking->created_at) }}<br>
+
+<strong>@lang('Total Amount'):</strong>
+{{ showAmount($booking->total_amount) }}<br>
+
+<strong>@lang('Paid Amount'):</strong>
+{{ showAmount($booking->paid_amount) }}
+</p>
+</td>
+
+</tr>
+</table>
+
+
+{{-- PAYMENTS RECEIVED --}}
+@if($payments->count())
+
+<div class="section-title">@lang('Payments Received')</div>
+
+<table class="table-bordered custom-table">
+<thead>
+<tr>
+<th>@lang('Date')</th>
+<th>@lang('Payment Method')</th>
+<th>@lang('Amount')</th>
+</tr>
+</thead>
+
+<tbody>
+
+@foreach($payments as $payment)
+
+<tr>
+
+<td>
+{{ showDateTime($payment->created_at,'d M Y H:i') }}
+</td>
+
+<td>
+
+{{ $payment->payment_system }}
+
+@if($payment->owner_id > 0)
+<br>
+<small>Paid directly to Hotel</small>
+@else
+<br>
+<small>Paid to KokanStays Platform</small>
+@endif
+
+</td>
+
+<td>
+{{ showAmount($payment->amount) }}
+</td>
+
+</tr>
+
+@endforeach
+
+</tbody>
+</table>
+
+@endif
+
+
+
+{{-- PAYMENTS RETURNED --}}
+@if($refunds->count())
+
+<div class="section-title">@lang('Payments Returned')</div>
+
+<table class="table-bordered custom-table">
+
+<thead>
+<tr>
+<th>@lang('Date')</th>
+<th>@lang('Payment Method')</th>
+<th>@lang('Amount')</th>
+</tr>
+</thead>
+
+<tbody>
+
+@foreach($refunds as $refund)
+
+<tr>
+
+<td>
+{{ showDateTime($refund->created_at,'d M Y H:i') }}
+</td>
+
+<td>
+{{ $refund->payment_system }}
+</td>
+
+<td>
+{{ showAmount($refund->amount) }}
+</td>
+
+</tr>
+
+@endforeach
+
+</tbody>
+
+</table>
+
+@endif
+
+
+
+{{-- ROOM DETAILS --}}
+<div class="section-title">@lang("Room Details")</div>
+
+<table class="table-bordered custom-table">
+
+<thead>
+<tr>
+<th>@lang('Room No.')</th>
+<th>@lang('Room Type')</th>
+<th>@lang('Fare')</th>
+</tr>
+</thead>
+
+<tbody>
+
+@foreach ($bookedRooms as $key => $item)
+
+<tr style="background:#fafafa">
+<td colspan="3" style="text-align:center">
+{{ showDateTime($key,'d M Y') }}
+</td>
+</tr>
+
+@foreach ($item as $booked)
+
+<tr>
+
+<td>
+{{ $booked->room->room_number }}
+
+@if ($booked->status == Status::ROOM_CANCELED)
+- @lang('Canceled')
+@endif
+</td>
+
+<td>
+{{ $booked->room->roomType->name }}
+</td>
+
+<td>
+{{ showAmount($booked->fare) }}
+</td>
+
+</tr>
+
+@endforeach
+
+@endforeach
+
+
+<tr style="background:#fafafa">
+<td colspan="2" class="text-right">
+<strong>@lang('Total Fare')</strong>
+</td>
+
+<td>
+{{ showAmount($totalFare) }}
+</td>
+</tr>
+
+
+@if(!$extraService)
+
+@include('partials.invoice_calculation_summary')
+
+@endif
+
+
+</tbody>
+</table>
+
+
+
+{{-- EXTRA SERVICES --}}
+@if ($extraService)
+
+@php
+$extraServices = $booking->usedExtraService->groupBy('service_date');
+@endphp
+
+<div class="section-title">@lang('Service Details')</div>
+
+<table class="table-bordered custom-table">
+
+<thead>
+<tr>
+<th>@lang('Room No.')</th>
+<th>@lang('Service')</th>
+<th>@lang('Quantity')</th>
+<th>@lang('Unit Price')</th>
+<th>@lang('Amount')</th>
+</tr>
+</thead>
+
+<tbody>
+
+@foreach ($extraServices as $key => $serviceItems)
+
+<tr style="background:#fafafa">
+<td colspan="5" style="text-align:center">
+{{ showDateTime($key,'d M Y') }}
+</td>
+</tr>
+
+@foreach ($serviceItems as $service)
+
+<tr>
+
+<td>{{ $service->room->room_number }}</td>
+
+<td>{{ $service->extraService->name }}</td>
+
+<td>{{ $service->qty }}</td>
+
+<td>{{ showAmount($service->unit_price) }}</td>
+
+<td>{{ showAmount($service->total_amount) }}</td>
+
+</tr>
+
+@endforeach
+
+@endforeach
+
+<tr style="background:#fafafa">
+<td colspan="4" class="text-right">
+<strong>@lang('Total Charge')</strong>
+</td>
+
+<td>
+{{ showAmount($booking->service_cost) }}
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+
+
+<div class="section-title">@lang('Billing Summary')</div>
+
+<table class="table-bordered custom-table">
+
+<tbody>
+
+@include('partials.invoice_calculation_summary')
+
+</tbody>
+
+</table>
+
+@endif
+
+
+
+{{-- FOOTER --}}
+<div class="footer">
+<hr>
+<p>
+@lang('Thank you for choosing') {{ gs()->site_name }}
+</p>
+</div>
+
+
 </body>
-
 </html>
