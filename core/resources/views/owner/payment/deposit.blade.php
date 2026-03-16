@@ -25,7 +25,7 @@
             </div>
             <form action="{{ route('owner.deposit.insert') }}" method="post">
                 @csrf
-                <input name="currency" type="hidden">
+                <input name="currency" type="hidden" value="{{ gs('cur_text') }}">
                 <div class="card">
                     <div class="card-header">
                         <h5 class="card-title">@lang('Subscription Payment')</h5>
@@ -46,22 +46,17 @@
                             </div>
                         @endif
                         <div class="d-flex justify-content-center flex-wrap gap-2 my-3">
-                            @php $counter = floor(gs()->maximum_payment_month / 4); @endphp
-                            @for ($i = 1; $i <= $counter; $i++)
-                                @php
-                                    $months = $i * 4;
-                                    $title = 'Pay For ' . $months . ' Months';
-                                @endphp
-                                <div class="paying_month" data-pay_for="{{ $months }}">
-                                    <span class="title">{{ __($title) }}</span>
-                                </div>
-                            @endfor
+                            @foreach ([12,24] as $months)
+                        <div class="paying_month {{ $months == 12 ? 'selected' : '' }}" data-pay_for="{{ $months }}">
+                        <span class="title">@lang('Pay For') {{ $months }} @lang('Months')</span>
+                        </div>
+                        @endforeach
                         </div>
                         <div class="form-group">
                             <label>@lang('Pay For')</label>
                             <div class="input-group">
-                                <input type="number" min="0" max="{{ gs()->maximum_payment_month }}"
-                                    class="form-control" name="pay_for_month" required>
+                                <input type="number" min="12" max="24" step="12"
+class="form-control" name="pay_for_month" value="12" required>
                                 <span class="input-group-text">@lang('Months')</span>
                             </div>
                         </div>
@@ -124,6 +119,9 @@
 @push('script')
     <script>
         (function($) {
+            $(document).ready(function () {
+    $('.paying_month.selected').trigger('click');
+});
             "use strict";
 
             function formatState(state) {
@@ -148,25 +146,22 @@
             });
 
             $('.paying_month').on('click', function() {
-                $('.paying_month').not($(this)).removeClass('selected');
-                if ($(this).hasClass('selected')) {
-                    $('[name=pay_for_month]').val('').trigger("change");
-                } else {
-                    let month = $(this).data('pay_for');
-                    $('[name=pay_for_month]').val(month).trigger("change");
-                }
 
-                $(this).toggleClass('selected');
-            })
+    $('.paying_month').removeClass('selected');
+    $(this).addClass('selected');
+
+    let month = $(this).data('pay_for');
+    $('[name=pay_for_month]').val(month).trigger("change");
+
+});
 
             $('[name=pay_for_month]').on('input change', function() {
                 var payFor = Number($(this).val());
-                var maxPaymentMonth = @json(gs('maximum_payment_month'));
-
-                if (payFor > maxPaymentMonth) {
-                    notify('error', `@lang('You can pay for maximum ${maxPaymentMonth} months')`);
-                    $('[name=pay_for_month]').val('');
-                }
+                if (payFor != 12 && payFor != 24) {
+                notify('error', 'You can pay only for 12 or 24 months');
+                $('[name=pay_for_month]').val('');
+                return;
+            }
                 calculate();
             });
 

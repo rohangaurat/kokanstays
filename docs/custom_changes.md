@@ -1,6 +1,169 @@
 KOKANSTAYS – CUSTOM LOG
 
 ### 2026-03-16
+### Fix Multi-Guard Session Conflict in Subscription Payment
+
+**File Modified**
+
+core/app/Http/Controllers/Gateway/PaymentController.php
+
+**Issue**
+
+Vendor subscription payments sometimes triggered validation errors for booking payments when a user session existed in another browser tab.
+
+Errors included:
+
+* The amount field is required.
+* The booking id field is required.
+
+**Cause**
+
+The `currentAuth()` helper prioritized the `user` guard when both `user` and `owner` sessions were active.
+
+**Fix**
+
+Force the request to use the `owner` guard when the subscription form is submitted.
+
+```php
+$currentAuth = currentAuth();
+
+if ($request->has('pay_for_month')) {
+    $currentAuth['type'] = 'owner';
+}
+```
+
+**Result**
+
+Vendor subscription payments now work correctly even when a user session exists in another tab.
+
+
+### Change: Default Booking Date Range to 1 Night
+
+**File Modified**
+
+```
+core/resources/views/templates/basic/partials/booking_filter.blade.php
+```
+
+**Previous Behavior**
+
+* Homepage booking filter defaulted to **30-day stay**.
+* Example: `16 Mar 2026 → 15 Apr 2026`.
+
+**New Behavior**
+
+* Default booking range set to **1 night stay**.
+* Example: `16 Mar 2026 → 17 Mar 2026`.
+
+**Reason**
+
+* Improves user experience and aligns with common hotel booking platforms (Booking.com / Airbnb).
+* Prevents unrealistic long default booking ranges.
+
+**Code Change**
+
+Before:
+
+```javascript
+if (!checkOutDateRaw) {
+    checkOutDate.setDate(checkOutDate.getDate() + 30);
+}
+```
+
+After:
+
+```javascript
+if (!checkOutDateRaw) {
+    checkOutDate.setDate(checkOutDate.getDate() + 1);
+}
+```
+
+**Impact**
+
+* Homepage search now defaults to **1 night stay**.
+* Users can still select longer stays manually via the date picker.
+
+## 2026-03-16 – Booking Request System Improvements
+
+### Fixed: Booking Request Deletion Issue
+Expired and cancelled booking requests were returning a 404 error when users attempted to delete them.
+
+**Cause**
+Deletion logic was restricted to only `initial()` booking requests.
+
+**Old code**
+BookingRequest::initial()
+->where('user_id', auth()->id())
+->findOrFail($id);
+
+**Fix**
+Removed `initial()` scope so users can delete their own expired or cancelled booking requests.
+
+**New code**
+BookingRequest::where('user_id', auth()->id())
+->findOrFail($id);
+
+File modified:
+core/app/Http/Controllers/User/BookingController.php
+
+
+---
+
+### Fixed: Validation Rule for Checkout Date
+
+Incorrect validation rule used `after:check_in`.
+
+**Old**
+'checkout' => 'required|date_format:Y-m-d|after:check_in'
+
+**New**
+'checkout' => 'required|date_format:Y-m-d|after:checkin'
+
+
+---
+
+### Improvement: Prevent Invalid Room Quantity
+
+Added validation to skip room types with zero quantity.
+
+**Added code**
+if ($roomCount <= 0) {
+    continue;
+}
+
+
+---
+
+### Improvement: Prevent Zero-Night Stay Calculation
+
+Added protection to ensure minimum 1 night calculation.
+
+**Added code**
+$stayingDays = max(1, diffInDays($checkIn, $checkout));
+
+
+---
+
+### Improvement: Owner Existence Validation
+
+Added safety check to prevent booking requests for unavailable or expired hotels.
+
+**Added code**
+if (!$owner) {
+    $notify[] = ['error', 'Hotel not available'];
+    return back()->withNotify($notify);
+}
+
+
+---
+
+### Security Improvement: Restrict Booking Request Deletion
+
+Users can now only delete their own booking requests.
+
+**Implemented**
+BookingRequest::where('user_id', auth()->id())
+->findOrFail($id);
 
 ### Fix: Offline Hotel Payment Label Missing in User Payment History
 

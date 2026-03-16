@@ -44,32 +44,61 @@ class PaymentController extends Controller {
         }
     }
 
-    public function depositInsert(Request $request) {
-        $currentAuth      = currentAuth();
-        $payFor           = 'nullable';
-        $amountIsRequired = 'required';
-        if ($currentAuth['type'] == 'owner') {
-            $payFor           = 'required|integer|gt:0|lte:' . gs('maximum_payment_month');
-            $amountIsRequired = 'nullable';
-        }
+    public function depositInsert(Request $request)
+{
+
+$currentAuth = currentAuth();
+
+/* Fix multi-guard conflict */
+if ($request->has('pay_for_month')) {
+    $currentAuth['type'] = 'owner';
+}
+
+/* Fix missing gateway when wallet selected */
+if (!$request->has('gateway')) {
+    $request->merge([
+        'gateway' => -1
+    ]);
+}
+
+    if ($currentAuth['type'] == 'owner') {
+
+    $request->validate([
+        'gateway'       => 'required',
+        'pay_for_month' => 'required|in:12,24'
+    ]);
+
+    // ensure currency exists for gateway lookup
+    $request->merge([
+        'currency' => gs('cur_text')
+    ]);
+}
+else {
 
         $request->validate([
-            'amount'        => $amountIsRequired . '|numeric|gt:0',
-            'gateway'       => 'required',
-            'currency'      => 'required',
-            'pay_for_month' => $payFor,
-            'booking_id'    => $amountIsRequired . '|exists:bookings,id',
+            'amount'     => 'required|numeric|gt:0',
+            'gateway'    => 'required',
+            'currency'   => 'required',
+            'booking_id' => 'required|exists:bookings,id'
         ]);
+
+    }
+
+    // rest of your existing code continues here
+    $currency = $request->currency ?? gs('cur_text');
+
 
         $owner   = null;
         $booking = null;
-        $amount  = $request->amount;
+        $amount = $currentAuth['type'] == 'owner'
+    ? $request->pay_for_month * gs('bill_per_month')
+    : $request->amount;
         $ownerId = 0;
 
         if ($currentAuth['type'] == 'owner') {
             $owner   = authOwner();
             $ownerId = $owner->id;
-            $amount  = $request->pay_for_month * gs('bill_per_month');
+            
 
             if ($request->gateway == -1) {
                 if ($amount > $owner->balance) {
@@ -84,18 +113,21 @@ class PaymentController extends Controller {
             }
         }
 
-        $gate = GatewayCurrency::whereHas('method', function ($gate) {
-            $gate->where('status', Status::ENABLE);
-        })->where('method_code', $request->gateway)->where('currency', $request->currency)->first();
+        $gate = GatewayCurrency::with('method')
+    ->where('method_code', $request->gateway)
+    ->where('currency', $request->currency)
+    ->first();
         if (!$gate) {
             $notify[] = ['error', 'Invalid gateway'];
             return back()->withNotify($notify);
         }
 
-        if ($gate->min_amount > $amount || $gate->max_amount < $amount) {
-            $notify[] = ['error', 'Please follow deposit limit'];
-            return back()->withNotify($notify);
-        }
+        if ($currentAuth['type'] != 'owner') {
+    if ($gate->min_amount > $amount || $gate->max_amount < $amount) {
+        $notify[] = ['error', 'Please follow deposit limit'];
+        return back()->withNotify($notify);
+    }
+}
 
         //for user booking  only
         if ($currentAuth['type'] == 'user') {
@@ -156,7 +188,7 @@ class PaymentController extends Controller {
     ? Carbon::parse($owner->expire_at)
     : now();
 
-$nextExpireDate = $baseDate->addMonths($payForMonth)->subDay();
+$nextExpireDate = $baseDate->addMonths($payForMonth);
 
     $owner->balance -= $amount;
     $owner->expire_at = $nextExpireDate;
@@ -285,7 +317,7 @@ $baseDate = $owner->expire_at
     ? Carbon::parse($owner->expire_at)
     : now();
 
-$nextExpireDate = $baseDate->addMonths($months)->subDay();
+$nextExpireDate = $baseDate->addMonths($months);
 
                 $owner->expire_at = $nextExpireDate;
                 $owner->balance -= $deposit->amount;
