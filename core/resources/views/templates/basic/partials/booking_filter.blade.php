@@ -103,7 +103,7 @@
             let checkOutDate = checkOutDateRaw ? new Date(checkOutDateRaw) : new Date();
 
             if (!checkOutDateRaw) {
-                checkOutDate.setDate(checkOutDate.getDate() + 30);
+                checkOutDate.setDate(checkOutDate.getDate() + 1);
             }
 
             $('.t-datepicker').tDatePicker({
