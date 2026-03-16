@@ -128,6 +128,10 @@ class ManageBookingController extends Controller
         ]);
 
         $booking = Booking::currentOwner()->findOrFail($id);
+        if ($booking->status == Status::BOOKING_CANCELED) {
+        $notify[] = ['error', 'Cancelled bookings cannot be modified'];
+        return back()->withNotify($notify);
+        }
 
 // real calculation (do NOT use accessor)
 $due = $booking->total_amount - $booking->paid_amount;
@@ -153,6 +157,10 @@ return $this->returnPayment($booking, $request->amount);
         $this->extraChargeValidation($request);
 
         $booking = Booking::currentOwner()->findOrFail($id);
+        if ($booking->status == Status::BOOKING_CANCELED) {
+        $notify[] = ['error', 'Cancelled bookings cannot be modified'];
+        return back()->withNotify($notify);
+        }
         $booking->extra_charge += $request->amount;
         $booking->save();
         $reason = showAmount($request->amount) . ' added for ' . $request->reason;
@@ -168,6 +176,10 @@ return $this->returnPayment($booking, $request->amount);
         $this->extraChargeValidation($request);
 
         $booking = Booking::currentOwner()->findOrFail($id);
+        if ($booking->status == Status::BOOKING_CANCELED) {
+        $notify[] = ['error', 'Cancelled bookings cannot be modified'];
+        return back()->withNotify($notify);
+        }
 
         if ($request->amount + $booking->extra_charge_subtracted > $booking->extra_charge) {
             $notify[] = ['error', 'Subtracted amount should be less than or equal to booking extra charge'];
