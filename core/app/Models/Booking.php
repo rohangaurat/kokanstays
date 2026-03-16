@@ -119,9 +119,10 @@ class Booking extends Model
     }
 
     public function scopeTodayCheckout($query)
-    {
-        return $query->whereDate('check_out', now());
-    }
+{
+    return $query->active()
+        ->whereDate('check_out', now());
+}
 
     public function scopeRefundable($query)
 {
