@@ -281,7 +281,7 @@ public function refundableAmount(): Attribute
         $paymentLog->amount      = $amount;
         $paymentLog->type        = $type;
         $paymentLog->payment_system = $paymentSystem ?? 'Cash Payment';
-        $paymentLog->owner_id    = $ownerId ?? getOwnerParentId();
+        $paymentLog->owner_id = $ownerId ?: getOwnerParentId();
         $paymentLog->action_by   = $isUser ? 0 : authOwner()->id;
         $paymentLog->save();
     }

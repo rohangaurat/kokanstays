@@ -1,5 +1,69 @@
 KOKANSTAYS – CUSTOM LOG
 
+### 2026-03-16
+
+### Billing Fix – Refund report visibility
+
+Issue:
+Refund entries in `payment_logs` were saved with incorrect `owner_id`, causing them not to appear in Vendor → Reports → Returned Payments.
+
+Fix:
+Updated `createPaymentLog()` in `core/app/Models/Booking.php` to always assign the correct owner using `getOwnerParentId()`.
+
+Impact:
+Refund transactions now appear correctly in vendor reports, regardless of whether processed by vendor or staff.
+
+
+#### Fix: Cancelled bookings appearing in Today's Checkout
+
+Updated `scopeTodayCheckout()` in `Booking` model to include only active bookings.
+
+Before:
+Returned all bookings with checkout date today including cancelled bookings.
+
+After:
+Filters only `BOOKING_ACTIVE` bookings.
+
+File:
+core/app/Models/Booking.php
+
+## 2026-03-16
+
+### Booking Payment & Refund System Improvements
+
+Implemented fixes for booking payment, cancellation, and refund handling.
+
+#### Fixes
+- Corrected `due_amount` and `refundable_amount` calculation in `Booking` model.
+- Fixed refund processing logic in `ManageBookingController`.
+- Prevented negative receivable amounts.
+- Allowed proper refund when `paid_amount > total_amount`.
+- Updated bill payment screen to correctly show **Refund Amount** instead of receivable amount.
+- Improved booking payment UI logic for refund vs receive payment.
+- Updated vendor booking details view to correctly display payment and refund summary.
+- Fixed API booking details response for mobile app to reflect correct totals after refund.
+
+#### Result
+Booking accounting now behaves correctly:
+
+Example:
+
+| Item | Amount |
+|-----|------|
+Room Fare | ₹2  
+Canceled Fare | -₹2  
+Total Amount | ₹0  
+Payment Received | ₹2  
+Refunded | ₹2  
+Receivable | ₹0  
+
+System now correctly logs:
+
+- `BOOKING_PAYMENT_RECEIVED`
+- `BOOKING_PAYMENT_RETURNED`
+
+and balances booking payment totals.
+----
 ### Fix: Owner notification error (Undefined constant BOOKING_REQUEST_INITIAL)
 
 Date: 15 Mar 2026
