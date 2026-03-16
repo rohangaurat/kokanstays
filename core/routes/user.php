@@ -1,5 +1,5 @@
 <?php
-
+use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::namespace('User\Auth')->middleware('guest')->group(function () {
@@ -48,7 +48,7 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware(['check.status', 'registration.complete'])->group(function () {
         Route::namespace('User')->group(function(){
-            Route::controller('UserController')->group(function(){
+            Route::controller(UserController::class)->group(function(){
                 Route::get('download-attachments/{file_hash}', 'downloadAttachment')->name('download.attachment');
 
                 //Report
@@ -91,6 +91,6 @@ Route::middleware('auth')->group(function () {
             Route::any('/{id?}', 'deposit')->name('index');
         });
 
-        Route::post('add-device-token', 'UserController@addDeviceToken')->name('add.device.token');
+        Route::post('add-device-token', [UserController::class, 'addDeviceToken'])->name('add.device.token');
     });
 });

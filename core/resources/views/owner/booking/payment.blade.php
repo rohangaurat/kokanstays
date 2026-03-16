@@ -50,6 +50,8 @@ $refund = $booking->refundable_amount ?? 0;
     </div>
 </div>
                                 @can('owner.booking.payment')
+@if($booking->status != \App\Constants\Status::BOOKING_CANCELED)
+
 <button 
     @disabled(abs($due) == 0 && $refund == 0)
     class="btn {{ $refund > 0 ? 'btn--danger' : 'btn--primary' }} w-100 h-45"
@@ -58,6 +60,8 @@ $refund = $booking->refundable_amount ?? 0;
     {{ $refund > 0 ? __('Process Refund') : __('Receive Payment') }}
 
 </button>
+
+@endif
 @endcan
                             </form>
                         </div>
@@ -106,14 +110,20 @@ $refund = $booking->refundable_amount ?? 0;
 
     @push('breadcrumb-plugins')
         @can('owner.booking.extra.charge.add')
-            <button class="btn btn--success extraChargeBtn" data-id="{{ $booking->id }}" data-type="add">
-                <i class="las la-plus-circle"></i>@lang('Add Extra Charge')
-            </button>
-        @endcan
+@if($booking->status != \App\Constants\Status::BOOKING_CANCELED)
+<button class="btn btn--success extraChargeBtn" data-id="{{ $booking->id }}" data-type="add">
+    <i class="las la-plus-circle"></i>@lang('Add Extra Charge')
+</button>
+@endif
+@endcan
 
         @can('owner.booking.extra.charge.subtract')
-            <button class="btn btn--danger extraChargeBtn" data-id="{{ $booking->id }}" data-type="subtract"><i class="las la-minus-circle"></i>@lang('Subtract Extra Charge')</button>
-        @endcan
+@if($booking->status != \App\Constants\Status::BOOKING_CANCELED)
+<button class="btn btn--danger extraChargeBtn" data-id="{{ $booking->id }}" data-type="subtract">
+    <i class="las la-minus-circle"></i>@lang('Subtract Extra Charge')
+</button>
+@endif
+@endcan
     @endpush
 
     @push('script')
