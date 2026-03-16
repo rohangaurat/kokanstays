@@ -31,11 +31,13 @@
                                         <div class="left">
                                             <div class="content p-0">
                                                 <h6 class="trans-title">
-                                                    @if ($deposit->method_code < 5000)
-                                                        {{ __($deposit->gateway->name ?? '') }}
-                                                    @else
-                                                        @lang('Google Pay')
-                                                    @endif
+                                                    @if ($deposit->method_code == 0)
+    {{ $deposit->detail ?? __('Paid at Hotel') }}
+@elseif ($deposit->method_code < 5000)
+    {{ __($deposit->gateway->name ?? '') }}
+@else
+    @lang('Google Pay')
+@endif
                                                 </h6>
                                                 <span class="text-muted fs-14 mt-2">#{{ $deposit->trx }}</span>
                                             </div>

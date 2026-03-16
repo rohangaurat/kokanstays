@@ -2,6 +2,205 @@ KOKANSTAYS – CUSTOM LOG
 
 ### 2026-03-16
 
+### Fix: Offline Hotel Payment Label Missing in User Payment History
+
+**Issue**
+
+On the user payment history page:
+
+```
+/user/payment/history
+```
+
+Offline payments recorded by hotel staff (`method_code = 0`) were showing **no payment method label**, only the transaction ID and amount.
+
+Example:
+
+```
+#WUSNLEVJLMZ3
+₹50
+```
+
+This created confusion because the payment was actually **Cash Payment at Hotel**.
+
+---
+
+**Cause**
+
+The payment history view was displaying the gateway name using:
+
+```php
+$deposit->gateway->name
+```
+
+However, offline payments (`method_code = 0`) do not have an associated gateway, so the label appeared blank.
+
+---
+
+**Solution**
+
+Updated the payment method display logic to handle offline/manual payments separately.
+
+**File Modified**
+
+```
+core/resources/views/templates/basic/user/deposit_history.blade.php
+```
+
+**Before**
+
+```php
+@if ($deposit->method_code < 5000)
+    {{ __($deposit->gateway->name ?? '') }}
+@else
+    @lang('Google Pay')
+@endif
+```
+
+**After**
+
+```php
+@if ($deposit->method_code == 0)
+    {{ $deposit->detail ?? __('Offline Payment at Hotel') }}
+@elseif ($deposit->method_code < 5000)
+    {{ __($deposit->gateway->name ?? '') }}
+@else
+    @lang('Google Pay')
+@endif
+```
+
+---
+
+**Result**
+
+Offline payments now display correctly in user payment history.
+
+Example:
+
+```
+Cash Payment
+#WUSNLEVJLMZ3
+₹50
+```
+
+If no detail is stored, the system shows:
+
+```
+Offline Payment at Hotel
+```
+
+---
+
+**Impact**
+
+* Improves clarity for guests viewing payment history.
+* Supports manual hotel payments such as **Cash, Hotel UPI, or Reception payments**.
+* Keeps gateway-based payments unchanged.
+
+---
+
+
+### Fix: Admin Vendor Detail Booking Count Mismatch
+
+**Issue**
+
+On the Admin panel vendor detail page:
+
+```
+/admin/hotels/detail/{id}
+```
+
+The **Total Bookings** widget was showing `0`, while the Vendor Dashboard correctly displayed the actual number of bookings.
+
+Example:
+
+| Panel               | Total Bookings |
+| ------------------- | -------------- |
+| Vendor Dashboard    | 3              |
+| Admin Vendor Detail | 0              |
+
+---
+
+**Cause**
+
+The Admin controller was counting only **active bookings** using:
+
+```php
+Booking::active()->where('owner_id', $owner->id)->count();
+```
+
+However, the Vendor Dashboard counts **all bookings**, regardless of status.
+
+If bookings are completed, checked-out, cancelled, or pending, they are not included in `active()` scope, resulting in an incorrect count.
+
+---
+
+**Solution**
+
+Updated the query to count **all bookings** instead of only active ones.
+
+**File Modified**
+
+```
+core/app/Http/Controllers/Admin/ManageOwnersController.php
+```
+
+**Before**
+
+```php
+$widget['total_booking'] = Booking::active()->where('owner_id', $owner->id)->count();
+```
+
+**After**
+
+```php
+$widget['total_booking'] = Booking::where('owner_id', $owner->id)->count();
+```
+
+---
+
+**Result**
+
+Admin Vendor Detail page now correctly shows the same booking count as the Vendor Dashboard.
+
+Example:
+
+| Panel               | Total Bookings |
+| ------------------- | -------------- |
+| Vendor Dashboard    | 3              |
+| Admin Vendor Detail | 3              |
+
+---
+
+**Impact**
+
+* Fixes incorrect booking statistics in the Admin panel.
+* Keeps Admin and Vendor dashboards consistent.
+* No database structure changes required.
+
+---
+
+
+### Invoice Improvements
+
+Files:
+- invoice.blade.php
+- invoice_calculation_summary.blade.php
+- invoice.css
+
+Changes:
+- Professional invoice layout
+- Payment tables (received / refunded)
+- Display payment receiver (Hotel / Platform)
+
+### Payment Logic Fix
+
+File:
+core/app/Http/Controllers/Gateway/PaymentController.php
+
+Gateway payments now recorded with owner_id = 0 (Platform)
+instead of owner_id = vendor.
+
 ### Billing Fix – Refund report visibility
 
 Issue:
