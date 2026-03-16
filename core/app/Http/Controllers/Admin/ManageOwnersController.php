@@ -51,7 +51,7 @@ class ManageOwnersController extends Controller
         $pageTitle = 'Vendor\'s Detail';
 
         $widget['total_room_type'] = RoomType::where('owner_id', $owner->id)->count();
-        $widget['total_booking']   = Booking::active()->where('owner_id', $owner->id)->count();
+        $widget['total_booking']   = Booking::where('owner_id', $owner->id)->count();
         $widget['total_staff']     = Owner::where('parent_id', $owner->id)->count();
         $totalTransaction = Transaction::where('owner_id', $owner->id)->count();
 
