@@ -72,9 +72,7 @@
                                     </a>
                                 </li>
                             @endforeach
-                            <li class="footer-menu__item">
-                                <a href="{{ route('cookie.policy') }}" class="footer-menu__link">@lang('Cookie Policy')</a>
-                            </li>
+                {{-- Cookie Policy Removed --}}
                         </ul>
                     </div>
                 </div>
@@ -109,35 +107,34 @@
                     <div class="footer-item">
                         <h6 class="footer-item__title">@lang('Contact With Us')</h6>
                         <ul class="footer-contact-menu">
-                            <li class="footer-contact-menu__item">
-                                <div class="footer-contact-menu__item-icon">
-                                    @php echo $frontendFooterContactContent->data_values->address_icon ?? ''; @endphp
-                                </div>
-                                <div class="footer-contact-menu__item-content">
-                                    <p>{{ __($frontendFooterContactContent->data_values->address ?? '') }}</p>
-                                </div>
-                            </li>
-                            <li class="footer-contact-menu__item">
-                                <div class="footer-contact-menu__item-icon">
-                                    @php echo $frontendFooterContactContent->data_values->phone_icon ?? ''; @endphp
-                                </div>
-                                <div class="footer-contact-menu__item-content">
-                                    <a href="tel:{{ __($frontendFooterContactContent->data_values->phone ?? '') }}">
-                                        {{ __($frontendFooterContactContent->data_values->phone ?? '') }}
-                                    </a>
-                                </div>
-                            </li>
-                            <li class="footer-contact-menu__item">
-                                <div class="footer-contact-menu__item-icon">
-                                    @php echo $frontendFooterContactContent->data_values->email_icon ?? ''; @endphp
-                                </div>
-                                <div class="footer-contact-menu__item-content">
-                                    <a href="mailto:{{ __($frontendFooterContactContent->data_values->email ?? '') }}">
-                                        {{ __($frontendFooterContactContent->data_values->email ?? '') }}
-                                    </a>
-                                </div>
-                            </li>
-                        </ul>
+                            {{-- Address & Phone Removed --}}
+                            <ul class="footer-contact-menu">
+
+    {{-- WhatsApp --}}
+    <li class="footer-contact-menu__item">
+        <div class="footer-contact-menu__item-icon">
+            <i class="lab la-whatsapp"></i>
+        </div>
+        <div class="footer-contact-menu__item-content">
+            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $frontendFooterContactContent->data_values->phone ?? '') }}?text=Hello%20KokanStays" target="_blank">
+                Chat on WhatsApp
+            </a>
+        </div>
+    </li>
+
+    {{-- Email --}}
+    <li class="footer-contact-menu__item">
+        <div class="footer-contact-menu__item-icon">
+            @php echo $frontendFooterContactContent->data_values->email_icon ?? ''; @endphp
+        </div>
+        <div class="footer-contact-menu__item-content">
+            <a href="mailto:{{ __($frontendFooterContactContent->data_values->email ?? '') }}">
+                {{ __($frontendFooterContactContent->data_values->email ?? '') }}
+            </a>
+        </div>
+    </li>
+
+</ul>
                         @if (!blank($frontendSocialIconsElements))
                             <ul class="social-list">
                                 @foreach ($frontendSocialIconsElements as $frontendSocialIconsElement)

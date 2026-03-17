@@ -1,6 +1,131 @@
 KOKANSTAYS – CUSTOM LOG
 
+# Footer Contact Simplification & WhatsApp Integration
+**Date:** 2026-03-17
+**Project:** Kokan Stays
+**Tags:** UI, Footer, WhatsApp, Cleanup
+
+## 🚨 The Change
+Simplified footer by removing unnecessary links and improving contact accessibility.
+
+## ✅ What Was Done
+- Removed "Cookie Policy" link
+- Removed physical address and phone number
+- Added WhatsApp chat link using dynamic phone
+- Kept email as primary fallback contact
+
+## 💡 Benefit
+- Cleaner UI
+- Faster user engagement
+- Mobile-friendly contact option
+
 ### 2026-03-16
+
+### Fix Vendor Subscription Payment & Multi-Guard Session Conflict
+
+**Files Modified**
+
+* core/app/Http/Controllers/Gateway/PaymentController.php
+* core/resources/views/owner/payment/deposit.blade.php
+* docs/custom_changes.md
+
+---
+
+### Issue
+
+Vendor subscription payments sometimes failed with validation errors such as:
+
+* *The amount field is required*
+* *The booking id field is required*
+* *Invalid gateway*
+
+This occurred when a **regular user session was active in another browser tab** while testing the vendor panel.
+
+---
+
+### Root Cause
+
+The application uses multiple authentication guards:
+
+```
+user
+owner
+```
+
+The helper function `currentAuth()` occasionally returned the **user guard** instead of the **owner guard** when both sessions existed in the same browser session.
+
+Because of this, the system executed **booking payment validation rules** instead of **vendor subscription rules**.
+
+---
+
+### Fix
+
+Force the request to be treated as an **owner subscription request** when the subscription form submits the `pay_for_month` field.
+
+```php
+$currentAuth = currentAuth();
+
+/* Fix multi-guard conflict */
+if ($request->has('pay_for_month')) {
+    $currentAuth['type'] = 'owner';
+}
+```
+
+---
+
+### Additional Improvements
+
+**1. Handle missing gateway for wallet payments**
+
+Some submissions did not send a `gateway` field when selecting wallet balance.
+
+```php
+if (!$request->has('gateway')) {
+    $request->merge([
+        'gateway' => -1
+    ]);
+}
+```
+
+---
+
+**2. Restrict subscription options to fixed durations**
+
+Vendor payment page updated to allow only:
+
+```
+12 months
+24 months
+```
+
+This simplifies billing and prevents invalid subscription durations.
+
+---
+
+### Result
+
+Vendor subscription payments now work reliably:
+
+```
+Vendor selects plan
+↓
+Select payment gateway
+↓
+Payment confirm page opens correctly
+↓
+Subscription renewal processed
+```
+
+No validation errors occur even when **user sessions exist in other browser tabs**.
+
+---
+
+### Notes
+
+Laravel sessions are shared across browser tabs, so multi-role testing in the same browser can cause guard conflicts.
+
+The override ensures the correct authentication context for subscription payments.
+
 ### Fix Multi-Guard Session Conflict in Subscription Payment
 
 **File Modified**
